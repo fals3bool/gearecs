@@ -13,6 +13,7 @@ typedef struct {
   int sc_h;
   Color bg;
   Scene *scene;
+  float fixed_time;
 } FalsECS;
 
 Entity falsecs_entity(Scene *sc);

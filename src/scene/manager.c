@@ -3,6 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifdef PLATFORM_WEB
+#include <emscripten/emscripten.h>
+#endif
+
 Entity falsecs_entity(Scene *sc) {
   Entity e = ecs_entity(sc);
   ecs_add_def(sc, e, EntityData, ENTITYDATA_DEFAULT);
@@ -19,33 +23,39 @@ FalsECS *falsecs_start(int screen_w, int screen_h, char *title, Color bg) {
   return falsecs;
 }
 
-void falsecs_loop(FalsECS *falsecs) {
+void generic_loop(void *manager) {
+  FalsECS *falsecs = (FalsECS *)manager;
 
-  printf("entities: %d\n", ecs_entity_count(falsecs->scene));
-  ecs_run(falsecs->scene, EcsOnStart);
+  ecs_run(falsecs->scene, EcsOnUpdate);
+  ecs_run(falsecs->scene, EcsOnLateUpdate);
 
-  float time = 0.f;
-  while (!WindowShouldClose()) {
-    ecs_run(falsecs->scene, EcsOnUpdate);
-    ecs_run(falsecs->scene, EcsOnLateUpdate);
-
-    time += GetFrameTime();
-    while (time >= FIXED_DELTATIME) {
-      ecs_run(falsecs->scene, EcsOnFixedUpdate);
-      time -= FIXED_DELTATIME;
-    }
-
-    BeginDrawing();
-    ClearBackground(falsecs->bg);
-
-    Camera2D *cam = ecs_get(falsecs->scene, 0, Camera2D);
-    BeginMode2D(*cam);
-    ecs_run(falsecs->scene, EcsOnRender);
-    EndMode2D();
-
-    ecs_run(falsecs->scene, EcsOnGui);
-    EndDrawing();
+  falsecs->fixed_time += GetFrameTime();
+  while (falsecs->fixed_time >= FIXED_DELTATIME) {
+    ecs_run(falsecs->scene, EcsOnFixedUpdate);
+    falsecs->fixed_time -= FIXED_DELTATIME;
   }
+
+  BeginDrawing();
+  ClearBackground(falsecs->bg);
+
+  Camera2D *cam = ecs_get(falsecs->scene, 0, Camera2D);
+  BeginMode2D(*cam);
+  ecs_run(falsecs->scene, EcsOnRender);
+  EndMode2D();
+
+  ecs_run(falsecs->scene, EcsOnGui);
+  EndDrawing();
+}
+
+void falsecs_loop(FalsECS *falsecs) {
+  ecs_run(falsecs->scene, EcsOnStart);
+#ifdef PLATFORM_WEB
+  emscripten_set_main_loop_arg(generic_loop, falsecs, 0, 1);
+#else
+  while (!WindowShouldClose()) {
+    generic_loop(falsecs);
+  }
+#endif
 }
 
 Scene *falsecs_scene(FalsECS *falsecs) {

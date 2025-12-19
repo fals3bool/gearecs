@@ -6,6 +6,15 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_TYPE RELEASE)
 
+# WEB or LINUX
+if(EMSCRIPTEN)
+    message(STATUS "Compilando para Web (Emscripten)")
+    set(PLATFORM Web)
+    set(CMAKE_EXECUTABLE_SUFFIX ".html")
+else()
+    message(STATUS "Compilando para Linux")
+endif()
+
 # Adding Raylib
 include(FetchContent)
 set(FETCHCONTENT_QUIET FALSE)
