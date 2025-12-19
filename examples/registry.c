@@ -6,10 +6,15 @@ void print_entities(Entity e1, Entity e2, Entity e3) {
   printf("\nentities ids:\n [e1] {%d}\n [e2] {%d}\n [e3] {%d}\n", e1, e2, e3);
 }
 
+typedef struct {
+  float x;
+  float y;
+} Position;
+
 int main(void) {
 
   Registry *world = ecs_registry();
-  Entity e0 = ecs_entity(world); // do not destroy
+  Entity e0 = ecs_entity(world);
 
   Entity e1 = ecs_entity(world);
   Entity e2 = ecs_entity(world);
@@ -19,14 +24,16 @@ int main(void) {
   e1 = ecs_entity(world);
   print_entities(e1, e2, e3);
 
-  ecs_entity_destroy(world, e2);
-  ecs_entity_destroy(world, e1);
-  e2 = ecs_entity(world);
-  e1 = ecs_entity(world);
-  print_entities(e1, e2, e3);
+  Component POSITION = ecs_alloc_component(world, "Position", sizeof(Position));
+  Position position = {23, 24};
+  ecs_add_component(world, e1, POSITION, &position);
 
-  Entity e4 = ecs_entity(world);
-  print_entities(e4, -1, -1);
+  Position *pos = ecs_get_component(world, e1, POSITION);
+  printf("\nposition: {%.2f, %.2f}\n", pos->x, pos->y);
+
+  ecs_remove_component(world, e1, POSITION);
+  pos = ecs_get_component(world, e1, POSITION);
+  printf("\nposition: {%.2f, %.2f}\n", pos->x, pos->y);
 
   ecs_registry_free(world);
 

@@ -1,17 +1,29 @@
 #ifndef ECS_REGISTRY_H
 #define ECS_REGISTRY_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 typedef struct Registry Registry;
 
 #define MAX_ENTITIES 1024
 typedef uint16_t Entity;
+typedef uint16_t Signature;
+typedef uint16_t Component;
 
 Registry *ecs_registry();
 void ecs_registry_free(Registry *r);
 
 Entity ecs_entity(Registry *r);
 void ecs_entity_destroy(Registry *r, Entity e);
+
+Component ecs_alloc_component(Registry *r, char *name, size_t size);
+
+void ecs_add_component(Registry *r, Entity e, Component id, void *data);
+void ecs_remove_component(Registry *r, Entity e, Component id);
+void *ecs_get_component(Registry *r, Entity e, Component id);
+
+int ecs_has_component(Registry *r, Entity e, Signature mask);
+Component ecs_component_id(Registry *r, char *name);
 
 #endif
