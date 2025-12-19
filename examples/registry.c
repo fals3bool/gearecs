@@ -24,18 +24,23 @@ int main(void) {
   e1 = ecs_entity(world);
   print_entities(e1, e2, e3);
 
-  Component POSITION = ecs_alloc_component(world, "Position", sizeof(Position));
-  Position position = {23, 24};
-  ecs_add_component(world, e1, POSITION, &position);
+  // Component POSITION = ecs_alloc_component(world, "Position",
+  // sizeof(Position)); Position position = {23, 24}; ecs_add_component(world,
+  // e1, POSITION, &position);
+  //
+  // Position *pos = ecs_get_component(world, e1, POSITION);
+  // printf("\nposition: {%.2f, %.2f}\n", pos->x, pos->y);
+  //
+  // ecs_remove_component(world, e1, POSITION);
+  // pos = ecs_get_component(world, e1, POSITION);
+  // printf("\nposition: {%.2f, %.2f}\n", pos->x, pos->y);
 
-  Position *pos = ecs_get_component(world, e1, POSITION);
-  printf("\nposition: {%.2f, %.2f}\n", pos->x, pos->y);
-
-  ecs_remove_component(world, e1, POSITION);
-  pos = ecs_get_component(world, e1, POSITION);
+  ecs_component(world, Position);
+  ecs_add(world, e1, Position, {23, 24});
+  Position *pos = ecs_get(world, e1, Position);
   printf("\nposition: {%.2f, %.2f}\n", pos->x, pos->y);
 
   ecs_registry_free(world);
-
+ 
   return 0;
 }

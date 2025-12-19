@@ -17,6 +17,19 @@ void ecs_registry_free(Registry *r);
 Entity ecs_entity(Registry *r);
 void ecs_entity_destroy(Registry *r, Entity e);
 
+// ########### //
+//  COMPONENT  //
+// ########### //
+
+#define ecs_component(registry, C)                                             \
+  Component C##_ = ecs_alloc_component(registry, #C, sizeof(C));
+
+#define ecs_add(registry, entity, C, ...)                                      \
+  ecs_add_component(registry, entity, C##_, &(C)__VA_ARGS__);
+
+#define ecs_get(registry, entity, C)                                           \
+  (C *)ecs_get_component(registry, entity, ecs_component_id(registry, #C));
+
 Component ecs_alloc_component(Registry *r, char *name, size_t size);
 
 void ecs_add_component(Registry *r, Entity e, Component id, void *data);
