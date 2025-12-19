@@ -1,3 +1,4 @@
+#include "ecs/system.h"
 #include <scene/manager.h>
 
 #include <stdlib.h>
@@ -65,6 +66,7 @@ Scene *falsecs_scene(FalsECS *falsecs) {
   ecs_component(r, Transform2);
   ecs_component(r, Sprite);
   ecs_component(r, Behaviour);
+  ecs_component(r, Collider);
 
   Entity cam = ecs_entity(r);
   ecs_add(r, cam, Camera2D,
@@ -80,6 +82,12 @@ Scene *falsecs_scene(FalsECS *falsecs) {
   ecs_system(r, EcsOnRender, ecs_behaviour_system_render, Behaviour,
              EntityData);
   ecs_system(r, EcsOnGui, ecs_behaviour_system_gui, Behaviour, EntityData);
+
+  ecs_system(r, EcsOnUpdate, ecs_transform_collider_system, Transform2,
+             Collider);
+
+  ecs_system(r, EcsOnRender, ecs_sprite_system, Transform2, Sprite);
+  ecs_system(r, EcsOnRender, ecs_debug_collider_system, Collider);
 
   falsecs->scene = r;
   return r;

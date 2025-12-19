@@ -20,6 +20,18 @@ typedef struct {
 #define TRANSFORM_DEFAULT {{0, 0}, {1, 1}, 0}
 
 typedef struct {
+  Vector2 *vx;
+  Vector2 *md;
+  Vector2 origin;
+  float rot;
+  uint8_t vertices;
+  uint8_t overlap;
+} Collider;
+Collider ecs_collider(int vertices, float radius);
+Collider ecs_collider_rot(int vertices, float radius, float rot);
+Collider ecs_collider_offset(int vertices, float radius, float rot, Vector2 origin);
+
+typedef struct {
   Texture tex;
   Rectangle src;
   Color tint;

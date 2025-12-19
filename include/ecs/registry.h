@@ -35,6 +35,9 @@ void ecs_entity_destroy(Registry *r, Entity e);
 #define ecs_add_def(registry, entity, C, ...)                                  \
   ecs_add_component(registry, entity, ecs_cid(registry, #C), &(C)__VA_ARGS__);
 
+#define ecs_add_obj(registry, entity, C, ...)                                  \
+  ecs_add_component(registry, entity, ecs_cid(registry, #C), &__VA_ARGS__);
+
 #define ecs_get(registry, entity, C)                                           \
   (C *)ecs_get_component(registry, entity, ecs_cid(registry, #C));
 

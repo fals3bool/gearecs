@@ -10,6 +10,9 @@ void ecs_behaviour_system_fixed(Registry *r, Entity e);
 void ecs_behaviour_system_render(Registry *r, Entity e);
 void ecs_behaviour_system_gui(Registry *r, Entity e);
 
+void ecs_transform_collider_system(Registry *r, Entity e);
+
 void ecs_sprite_system(Registry *r, Entity e);
+void ecs_debug_collider_system(Registry *r, Entity e);
 
 #endif
