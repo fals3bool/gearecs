@@ -1,13 +1,12 @@
 #include <scene/manager.h>
 
-#include <stdio.h>
 #include <stdlib.h>
 
 #ifdef PLATFORM_WEB
 #include <emscripten/emscripten.h>
 #endif
 
-Entity falsecs_entity(Scene *sc) {
+Entity ecs_entity_wdata(Scene *sc) {
   Entity e = ecs_entity(sc);
   ecs_add_def(sc, e, EntityData, ENTITYDATA_DEFAULT);
   return e;

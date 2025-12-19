@@ -16,7 +16,7 @@ typedef struct {
   float fixed_time;
 } FalsECS;
 
-Entity falsecs_entity(Scene *sc);
+Entity ecs_entity_wdata(Scene *sc);
 
 FalsECS *falsecs_start(int screen_w, int screen_h, char *title, Color bg);
 void falsecs_loop(FalsECS *falsecs);

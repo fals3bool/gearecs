@@ -12,7 +12,7 @@ void MOVE(Scene *scene, Entity self) {
 }
 
 void load_test_scene(Scene *sc) {
-  Entity e0 = falsecs_entity(sc);
+  Entity e0 = ecs_entity_wdata(sc);
   ecs_add_def(sc, e0, Transform2, TRANSFORM_DEFAULT);
   ecs_add_def(sc, e0, Behaviour, BEHAVIOUR_DEFAULT);
   ecs_script(sc, e0, MOVE, EcsOnUpdate);
