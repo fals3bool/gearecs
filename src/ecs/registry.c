@@ -42,6 +42,7 @@ void ecs_registry_free(Registry *r) {
   while (r->comp_count)
     free(r->components[--r->comp_count].list);
   free(r->components);
+  ecs_free_systems(r);
   free(r);
 }
 
@@ -115,6 +116,12 @@ Component ecs_cid(Registry *r, char *name) {
 
 void ecs_alloc_systems(Registry *r) {
   r->systems = calloc(EcsSystemLayers, sizeof(LayerSystems));
+}
+
+void ecs_free_systems(Registry *r) {
+  for (int i = 0; i < EcsSystemLayers; i++)
+    free(r->systems[i].list);
+  free(r->systems);
 }
 
 void ecs_alloc_system(Registry *r, EcsLayer ly, Script s, Signature mask) {

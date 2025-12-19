@@ -16,6 +16,11 @@ void MOVE(Registry *r, Entity e) {
   pos->x += 100;
 }
 
+void PRINT(Registry *r, Entity e) {
+  Position *pos = ecs_get(r, e, Position);
+  printf("\nposition: {%.2f, %.2f}\n", pos->x, pos->y);
+}
+
 int main(void) {
 
   Registry *world = ecs_registry();
@@ -32,11 +37,11 @@ int main(void) {
   ecs_component(world, Position);
   ecs_add(world, e1, Position, {23, 24});
 
-  ecs_alloc_system(world, EcsOnUpdate, MOVE, ecs_cid(world, "Position"));
-  ecs_run(world, EcsOnUpdate);
+  ecs_system(world, EcsOnUpdate, PRINT, Position);
+  ecs_system(world, EcsOnUpdate, MOVE, Position);
+  ecs_system(world, EcsOnUpdate, PRINT, Position);
 
-  Position *pos = ecs_get(world, e1, Position);
-  printf("\nposition: {%.2f, %.2f}\n", pos->x, pos->y);
+  ecs_run(world, EcsOnUpdate);
 
   ecs_registry_free(world);
 

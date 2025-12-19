@@ -57,7 +57,25 @@ typedef enum {
   EcsSystemLayers
 } EcsLayer;
 
+#define ECS_SIGNATURE(C) (1ULL << C##_)
+
+#define FOR_EACH_1(m, x) m(x)
+#define FOR_EACH_2(m, x, ...) m(x) | FOR_EACH_1(m, __VA_ARGS__)
+#define FOR_EACH_3(m, x, ...) m(x) | FOR_EACH_2(m, __VA_ARGS__)
+#define FOR_EACH_4(m, x, ...) m(x) | FOR_EACH_3(m, __VA_ARGS__)
+
+#define GET_MACRO(_1, _2, _3, _4, NAME, ...) NAME
+
+#define FOR_EACH(m, ...)                                                       \
+  GET_MACRO(__VA_ARGS__, FOR_EACH_4, FOR_EACH_3, FOR_EACH_2,                   \
+            FOR_EACH_1)(m, __VA_ARGS__)
+
+#define ecs_system(registry, layer, script, ...)                               \
+  ecs_alloc_system(registry, layer, script,                                    \
+                   FOR_EACH(ECS_SIGNATURE, __VA_ARGS__));
+
 void ecs_alloc_systems(Registry *r);
+void ecs_free_systems(Registry *r);
 void ecs_alloc_system(Registry *r, EcsLayer ly, Script s, Signature mask);
 
 void ecs_run(Registry *r, EcsLayer ly);
