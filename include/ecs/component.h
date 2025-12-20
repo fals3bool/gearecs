@@ -26,10 +26,15 @@ typedef struct {
   float rot;
   uint8_t vertices;
   uint8_t overlap;
+  uint8_t solid;
 } Collider;
+
 Collider ecs_collider(int vertices, float radius);
+Collider ecs_collider_solid(int vertices, float radius);
 Collider ecs_collider_rot(int vertices, float radius, float rot);
+Collider ecs_collider_solid_rot(int vertices, float radius, float rot);
 Collider ecs_collider_offset(int vertices, float radius, float rot, Vector2 origin);
+Collider ecs_collider_solid_offset(int vertices, float radius, float rot, Vector2 origin);
 
 typedef struct {
   Texture tex;
