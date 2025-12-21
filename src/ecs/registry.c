@@ -52,9 +52,11 @@ Entity ecs_entity(Registry *r) {
     e = r->free_entities[--r->free_count];
   else
     e = r->entity_count++;
+  r->entities[e] = 0;
   return e;
 }
 
+// TODO: erase components under its ID.
 void ecs_entity_destroy(Registry *r, Entity e) {
   r->free_entities[r->free_count++] = e;
 }
