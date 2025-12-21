@@ -8,7 +8,7 @@
 
 Entity ecs_entity_wdata(Scene *sc) {
   Entity e = ecs_entity(sc);
-  ecs_add_def(sc, e, EntityData, ENTITYDATA_DEFAULT);
+  ecs_add(sc, e, EntityData, ENTITYDATA_DEFAULT);
   return e;
 }
 
