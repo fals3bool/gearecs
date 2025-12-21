@@ -30,10 +30,10 @@ void ecs_entity_destroy(Registry *r, Entity e);
   Component C##_ = ecs_alloc_component(registry, #C, sizeof(C));
 
 #define ecs_add(registry, entity, C, ...)                                      \
-  ecs_add_component(registry, entity, C##_, &(C)__VA_ARGS__);
-
-#define ecs_add_def(registry, entity, C, ...)                                  \
   ecs_add_component(registry, entity, ecs_cid(registry, #C), &(C)__VA_ARGS__);
+
+#define ecs_add_cid(registry, entity, C, ...)                                  \
+  ecs_add_component(registry, entity, C##_, &(C)__VA_ARGS__);
 
 #define ecs_add_obj(registry, entity, C, ...)                                  \
   ecs_add_component(registry, entity, ecs_cid(registry, #C), &__VA_ARGS__);
