@@ -3,7 +3,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-Collider ecs_collider_ex(int vertices, float radius, float rot, Vector2 origin,
+Collider collider_create(int vertices, float radius, float rot, Vector2 origin,
                          uint8_t solid) {
   Collider col = {0};
   col.vx = (Vector2 *)malloc(sizeof(Vector2) * vertices);

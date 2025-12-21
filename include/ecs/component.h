@@ -31,14 +31,16 @@ typedef struct {
   uint8_t solid;
 } Collider;
 
-#define ecs_collider(v, r) ecs_collider_ex(v, r, 0, VEC2ZERO, 0)
-#define ecs_collider_rot(v, r, a) ecs_collider_ex(v, r, a, VEC2ZERO, 0)
-#define ecs_collider_offset(v, r, a, o) ecs_collider_ex(v, r, a, o, 0)
-#define ecs_collider_solid(v, r) ecs_collider_ex(v, r, 0, VEC2ZERO, 1)
-#define ecs_collider_rot_solid(v, r, a) ecs_collider_ex(v, r, a, VEC2ZERO, 1)
-#define ecs_collider_offset_solid(v, r, a, o) ecs_collider_ex(v, r, a, o, 1)
+#define collider_hollow(v, r) collider_create(v, r, 0, VEC2ZERO, 0)
+#define collider_solid(v, r) collider_create(v, r, 0, VEC2ZERO, 1)
 
-Collider ecs_collider_ex(int vertices, float radius, float rot, Vector2 origin,
+#define collider_rotated(v, r, a) collider_create(v, r, a, VEC2ZERO, 0)
+#define collider_rotated_solid(v, r, a) collider_create(v, r, a, VEC2ZERO, 1)
+
+#define collider_offset(v, r, a, o) collider_create(v, r, a, o, 0)
+#define collider_offset_solid(v, r, a, o) collider_create(v, r, a, o, 1)
+
+Collider collider_create(int vertices, float radius, float rot, Vector2 origin,
                          uint8_t solid);
 
 typedef struct {

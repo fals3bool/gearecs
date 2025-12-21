@@ -30,7 +30,7 @@ void load_test_scene(Scene *sc) {
   Entity e0 = ecs_entity_wdata(sc);
   ecs_add_def(sc, e0, Transform2, TRANSFORM_DEFAULT);
   ecs_add_def(sc, e0, Behaviour, BEHAVIOUR_DEFAULT);
-  Collider col = ecs_collider_rot(4, 16, PI / 4);
+  Collider col = collider_rotated_solid(3, 16, PI / 4);
   ecs_add_obj(sc, e0, Collider, col);
   ecs_script(sc, e0, MOVE, EcsOnUpdate);
   ecs_script(sc, e0, DRAW_SELF, EcsOnRender);
@@ -38,8 +38,7 @@ void load_test_scene(Scene *sc) {
   Entity e1 = ecs_entity_wdata(sc);
   Transform2 t1 = {{50, 0}, {1, 1}, 0};
   ecs_add_obj(sc, e1, Transform2, t1);
-  // ecs_add_def(sc, e1, Transform2, {{50, 0}, {1, 1}, 0});
-  Collider col2 = ecs_collider_solid(6, 20);
+  Collider col2 = collider_solid(6, 20);
   ecs_add_obj(sc, e1, Collider, col2);
 
   Entity e2 = ecs_entity(sc);
