@@ -1,7 +1,7 @@
-#include "ecs/component.h"
 #include <scene/manager.h>
 
 #include <raymath.h>
+#include <stdio.h>
 
 #define SCREEN_W 800
 #define SCREEN_H 450
@@ -21,7 +21,7 @@ void move_self(Scene *sc, Entity self) {
     d.x += 1;
 
   // modify speed:
-  rb_apply_impulse(rb, Vector2Scale(Vector2Normalize(d), 0.3f));
+  rb_apply_impulse(rb, Vector2Scale(Vector2Normalize(d), 90.f));
   // modify acceleration:
   // rb_apply_force(rb, Vector2Scale(Vector2Normalize(d), 0.3f));
   // won't stop unless manually stoped.
@@ -29,8 +29,19 @@ void move_self(Scene *sc, Entity self) {
 
 void draw_self(Scene *sc, Entity self) {
   Transform2 *t = ecs_get(sc, self, Transform2);
-  Rectangle rec = {t->position.x, t->position.y, 16, 16};
+  Rectangle rec = {t->position.x - 8, t->position.y - 8, 16, 16};
   DrawRectangleRec(rec, RED);
+}
+
+void gui_self(Scene *sc, Entity self) {
+  RigidBody *rb = ecs_get(sc, self, RigidBody);
+
+  char acctxt[16];
+  snprintf(acctxt, 14, "ACC: %.5f\n", Vector2Length(rb->acc));
+  DrawText(acctxt, 10, 10, 16, WHITE);
+  char sptxt[16];
+  snprintf(sptxt, 14, "SPD: %.5f\n", Vector2Length(rb->speed));
+  DrawText(sptxt, 10, 40, 16, WHITE);
 }
 
 int main(void) {
@@ -51,14 +62,17 @@ int main(void) {
   // ecs_add(sc, e, RigidBody, {20, 0.9f, 1}) // without gravity.
   //
   // there are some macros available.
-  float mass = 4.f;
-  float dam = 1.1f;
-  // ecs_add(sc, e, RigidBody, RIGIDBODY_DYNAMIC(mass, dam)); // with gravity
-  ecs_add(sc, e, RigidBody, RIGIDBODY_STATIC(mass, dam)); // without gravity
+  float mass = 400.f;
+  float dam = 2.7f;
+  // ecs_add(sc, e, RigidBody, RIGIDBODY_DYNAMIC(mass, dam, damacc)); // with
+  // gravity
+  ecs_add(sc, e, RigidBody,
+          RIGIDBODY_STATIC(mass, dam)); // without gravity
 
   ecs_add(sc, e, Behaviour, BEHAVIOUR_DEFAULT);
   ecs_script(sc, e, move_self, EcsOnUpdate);
   ecs_script(sc, e, draw_self, EcsOnRender);
+  ecs_script(sc, e, gui_self, EcsOnGui);
 
   falsecs_loop(&falsecs);
   falsecs_clean(&falsecs);
