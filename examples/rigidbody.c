@@ -1,4 +1,3 @@
-#include "ecs/component.h"
 #include <scene/manager.h>
 
 #include <raymath.h>
@@ -21,11 +20,17 @@ void move_self(Scene *sc, Entity self) {
   if (IsKeyDown(KEY_D))
     d.x += 1;
 
+  d = Vector2Scale(Vector2Normalize(d), 900.f);
+
+  if (IsKeyDown(KEY_SPACE))
+    d = Vector2Scale(d, 3);
+
   // modify speed:
-  rb_apply_impulse(rb, Vector2Scale(Vector2Normalize(d), 90.f));
+  rb_apply_impulse(rb, d);
   // modify acceleration:
-  // rb_apply_force(rb, Vector2Scale(Vector2Normalize(d), 0.3f));
+  // rb_apply_force(rb, Vector2Scale(Vector2Normalize(d), 900.f));
   // won't stop unless manually stoped.
+  // rb_apply_force(rb, (Vector2){-rb->acc.x, -rb->acc.y});
 }
 
 void draw_self(Scene *sc, Entity self) {
@@ -43,6 +48,9 @@ void gui_self(Scene *sc, Entity self) {
   char sptxt[16];
   snprintf(sptxt, 14, "SPD: %.5f\n", Vector2Length(rb->speed));
   DrawText(sptxt, 10, 40, 16, WHITE);
+
+  DrawText("MOVE: WASD", 700, 10, 14, WHITE);
+  DrawText("DASH: SPACE", 700, 40, 14, WHITE);
 }
 
 int main(void) {
@@ -58,18 +66,19 @@ int main(void) {
   ecs_add(sc, e, Transform2, TRANSFORM_DEFAULT);
 
   // add rigidbody
+  // ecs_add(sc, e, RigidBody, {20}); // mass = 20kg.
   // ecs_add(sc, e, RigidBody, {20, 0.9f}); // mass = 20kg, damping = 0.9.
   // ecs_add(sc, e, RigidBody, {20, 0.9f, 0}) // with gravity.
   // ecs_add(sc, e, RigidBody, {20, 0.9f, 1}) // without gravity.
   //
   // there are some macros available.
-  float mass = 400.f;
+  float mass = 40.f;
   float dam = 2.7f;
   // ecs_add(sc, e, RigidBody, RIGIDBODY_DYNAMIC(mass, dam)); // with gravity
   ecs_add(sc, e, RigidBody, RIGIDBODY_STATIC(mass, dam)); // without gravity
 
   ecs_add(sc, e, Behaviour, BEHAVIOUR_DEFAULT);
-  ecs_script(sc, e, move_self, EcsOnUpdate);
+  ecs_script(sc, e, move_self, EcsOnFixedUpdate);
   ecs_script(sc, e, draw_self, EcsOnRender);
   ecs_script(sc, e, gui_self, EcsOnGui);
 
