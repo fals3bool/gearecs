@@ -3,6 +3,7 @@
 
 #include <math.h>
 #include <raymath.h>
+#include <stdint.h>
 
 void ecs_transform_collider_system(Registry *r, Entity e) {
   Transform2 *t = ecs_get(r, e, Transform2);
@@ -95,22 +96,87 @@ uint8_t collision_overlap(Vector2 p, Collider *a, Collider *b) {
   return false;
 }
 
+uint8_t collision_rb(Vector2 pA, Vector2 pB, Collider *cA, Collider *cB,
+                     RigidBody *rbA, RigidBody *rbB) {
+  // A:
+  for (uint8_t i = 0; i < cA->vertices; i++) {
+    Vector2 line_r1s = pA;
+    Vector2 line_r1e = cA->vx[i];
+
+    // B:
+    for (uint8_t j = 0; j < cB->vertices; j++) {
+      Vector2 line_r2s = cB->vx[j];
+      Vector2 line_r2e = cB->vx[(j + 1) % cB->vertices];
+
+      float h = (line_r2e.x - line_r2s.x) * (line_r1s.y - line_r1e.y) -
+                (line_r1s.x - line_r1e.x) * (line_r2e.y - line_r2s.y);
+      float t1 = ((line_r2s.y - line_r2e.y) * (line_r1s.x - line_r2s.x) +
+                  (line_r2e.x - line_r2s.x) * (line_r1s.y - line_r2s.y)) /
+                 h;
+      float t2 = ((line_r1s.y - line_r1e.y) * (line_r1s.x - line_r2s.x) +
+                  (line_r1e.x - line_r1s.x) * (line_r1s.y - line_r2s.y)) /
+                 h;
+
+      if (t1 >= 0.0f && t1 < 1.0f && t2 >= 0.0f && t2 < 1.0f) {
+        Vector2 normal = Vector2Normalize(Vector2Subtract(pB, pA));
+        Vector2 deltaSP = Vector2Subtract(rbB->speed, rbA->speed);
+        float spAlongNormal = Vector2DotProduct(deltaSP, normal);
+        if (spAlongNormal > 0)
+          return true;
+
+        float e = 0;
+        float invMassA = (rbA->mass > 0) ? 1 / rbA->mass : 0;
+        float invMassB = (rbB->mass > 0) ? 1 / rbB->mass : 0;
+        float impulseMagnitude =
+            -(1 + e) * spAlongNormal / (invMassA + invMassB);
+        Vector2 impulse = Vector2Scale(normal, impulseMagnitude);
+        rbA->speed =
+            Vector2Subtract(rbA->speed, Vector2Scale(impulse, invMassA));
+        rbB->speed =
+            Vector2Add(rbB->speed, Vector2Scale(impulse, invMassB));
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 void ecs_collision_system(Registry *r, Entity e) {
   Transform2 *ta = ecs_get(r, e, Transform2);
   Collider *ca = ecs_get(r, e, Collider);
 
   Signature mask =
       ((1 << ecs_cid(r, "Transform2") & (1 << ecs_cid(r, "Collider"))));
+  Signature maskRB = (1 << ecs_cid(r, "RigidBody"));
   for (Entity other = e + 1; other < ecs_entity_count(r); ++other) {
     if (!ecs_has_component(r, e, mask))
       continue;
     Transform2 *tb = ecs_get(r, other, Transform2);
     Collider *cb = ecs_get(r, other, Collider);
 
-    if (ca->solid && cb->solid)
-      ca->overlap |= collision_sat(ta, ca, tb, cb);
-    else
+    if (ca->solid && cb->solid) {
+      int rb = false;
+      RigidBody rbZero = {0};
+      RigidBody *rbA, *rbB;
+      rbA = rbB = &rbZero;
+      if (ecs_has_component(r, e, maskRB)) {
+        rbA = ecs_get(r, e, RigidBody);
+        rb = true;
+      }
+      if (ecs_has_component(r, other, maskRB)) {
+        rbB = ecs_get(r, other, RigidBody);
+        rb = true;
+      }
+
+      if (!rb)
+        ca->overlap |= collision_sat(ta, ca, tb, cb);
+      else
+        ca->overlap |=
+            (collision_rb(ta->position, tb->position, ca, cb, rbA, rbB) ||
+             collision_rb(ta->position, tb->position, ca, cb, rbA, rbB));
+    } else {
       ca->overlap |= (collision_overlap(ta->position, ca, cb) ||
                       collision_overlap(tb->position, cb, ca));
+    }
   }
 }
