@@ -1,4 +1,3 @@
-#include "ecs/system.h"
 #include <scene/manager.h>
 
 #include <raymath.h>
