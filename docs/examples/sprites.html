@@ -1,6 +1,41 @@
-#include <scene/manager.h>
-#include <stdlib.h>
-#include <time.h>
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FalsECS - Sprites</title>
+    <link href="../css/style.css" rel="stylesheet">
+  </head>
+
+  <body>
+    <table>
+      <tr class="falsecs-example">
+        <td>
+          <div id="canvas-container">
+            <canvas id="canvas"></canvas>
+          </div>
+        </td>
+      </tr>
+
+      <tr class="falsecs-docs">
+        <td>
+          <h2>Sprites</h2>
+
+          <p>
+          FalsECS' system <b>ecs_sprites_system</b> is the responsible for drawing sprites and textures. <br>
+          To use it you need an Entity with three components: <b>EntityData, Transform2, Sprite</b> <br><br>
+          <b>•</b> Transform2: {position, scale, rotation}; <br>
+          <b>•</b> Sprite: {texture, dimension, tint}; <br><br>
+          The sprite will be drawn at transform.position only if entitydata is enabled.
+          </p>
+
+          <h2>Example</h2>
+
+          <pre><code class="language-c">
+#include &lt;scene/manager.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;time.h&gt;
 
 #define SCREEN_W 800
 #define SCREEN_H 450
@@ -77,3 +112,33 @@ int main(void) {
 
   CloseWindow();
 }
+          </code></pre>
+
+        </td>
+      </tr>
+    </table>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <script>
+      hljs.highlightAll();
+    </script>
+
+    <script>
+      var Module = {
+        canvas: document.getElementById('canvas')
+      };
+    </script>
+
+    <script src="sprites.js"></script>
+
+  </body>
+
+</html>
+
+
+

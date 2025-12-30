@@ -1,7 +1,39 @@
-#include <scene/manager.h>
+<!DOCTYPE html>
+<html lang="en">
 
-#include <raymath.h>
-#include <stdio.h>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FalsECS - Collisions</title>
+    <link href="../css/style.css" rel="stylesheet">
+  </head>
+
+  <body>
+    <table>
+      <tr class="falsecs-example">
+        <td>
+          <div id="canvas-container">
+            <canvas id="canvas"></canvas>
+          </div>
+        </td>
+      </tr>
+
+      <tr class="falsecs-docs">
+        <td>
+          <h2>Collisions</h2>
+
+          <p>
+          Colliders are use to define the shape of an object. It purpose is to simulate physical collisions. <br>
+          FalsECS' Colliders are <b>convex polygons</b> with a model, rotation, offset and collision flags. <br><br>
+          Create colliders using macros or the following function: <br>
+          <b>• Collider collider_create(int vertices, float radius, float rot, Vector2 origin, uint8_t solid)</b> <br><br>
+          </p>
+
+          <pre><code class="language-c">
+#include &lt;scene/manager.h&gt;
+
+#include &lt;raymath.h&gt;
+#include &lt;stdio.h&gt;
 
 #define SCREEN_W 800
 #define SCREEN_H 450
@@ -93,3 +125,32 @@ int main(void) {
 
   return 0;
 }
+          </code></pre>
+
+        </td>
+      </tr>
+    </table>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <script>
+      hljs.highlightAll();
+    </script>
+
+    <script>
+      var Module = {
+        canvas: document.getElementById('canvas')
+      };
+    </script>
+
+    <script src="rigidbody_collisions.js"></script>
+
+  </body>
+
+</html>
+
+

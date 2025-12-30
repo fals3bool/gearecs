@@ -1,6 +1,23 @@
-#include <ecs/registry.h>
+<!DOCTYPE html>
+<html lang="en">
 
-#include <stdio.h>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FalsECS - Registry</title>
+    <link href="../css/style.css" rel="stylesheet">
+  </head>
+
+  <body>
+    <table>
+
+      <tr class="falsecs-docs">
+        <td>
+          <h2>The Registry</h2>
+
+          <pre><code class="language-c">
+#include &lt;ecs/registry.h&gt;
+#include &lt;stdio.h&gt;
 
 #define PRINT_ID(entity) printf("%s {id:%d}\n", #entity, entity)
 
@@ -55,3 +72,22 @@ int main(void) {
 
   return 0;
 }
+          </code></pre>
+
+        </td>
+      </tr>
+    </table>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <script>
+      hljs.highlightAll();
+    </script>
+
+  </body>
+
+</html>

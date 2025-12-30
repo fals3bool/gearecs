@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FalsECS - Systems</title>
+    <link href="../css/style.css" rel="stylesheet">
+  </head>
+
+  <body>
+    <table>
+
+      <tr class="falsecs-docs">
+        <td>
+          <h2>Systems</h2>
+
+          <p>
+          A <b>Signature</b> is a bitset that represents the entity's components. <br>
+          Eg. The signature "01001" means the entity has the components with ID '0' and '3'. <br><br>
+          A <b>Component</b> characterizes an entity as possessing a particular aspect, and holds the data
+          needed to model that aspect. <br><br>
+          A <b>System</b> is a process that acts on all entities with the desired components. <br><br>
+          Systems are stored within an array of structs. The <b>Execution Layer</b> is the index of that array. <br><br>
+          </p>
+
+          <pre>
+<code class="language-c">// registry.h
+typedef enum {
+  EcsOnStart = 0,	// Executed at the begining.
+  EcsOnUpdate,		// Executed every frame.
+  EcsOnLateUpdate,	// Executed every frame right after EcsOnUpdate.
+  EcsOnFixedUpdate,	// Executed 60 times per second. Used by Physics Systems.
+  EcsOnRender,		// Executed during drawing process.
+  EcsOnGui,		// Executed during drawing process, ingnoring the camera position.
+  EcsSystemLayers	// Layer count.
+} EcsLayer;
+          </code></pre>
+
+          <h2>Example</h2>
+
+          <pre><code class="language-c">
+#include &lt;ecs/registry.h&gt;
+#include &lt;stdio.h&gt;
+
+typedef struct {
+  float x;
+  float y;
+} Position;
+
+typedef struct {
+  float x;
+  float y;
+} StaticPosition;
+
+void move_system(Registry *r, Entity e) {
+  Position *p = ecs_get(r, e, Position);
+  p->x += 100;
+  printf("entity id:{%d} moved x+=100\n", e);
+}
+
+void all_comps(Registry *r, Entity e) {
+  printf("the entity id:{%d} has both components\n", e);
+}
+
+int main(void) {
+  Registry *r = ecs_registry();
+  ecs_component(r, Position);
+  ecs_component(r, StaticPosition);
+
+  // Register a system under a execution layer.
+  // You also need to specify the component(s) to compare signatures.
+  // This system runs for every entity that has a Position component.
+  ecs_system(r, EcsOnUpdate, move_system, Position);
+  // 'ecs_system_local' uses the local-scope variable 'Position_'
+  // and 'StaticPosition_'
+  ecs_system_local(r, EcsOnUpdate, all_comps, Position, StaticPosition);
+
+  Entity e1 = ecs_entity(r);
+  Entity e2 = ecs_entity(r);
+  Entity e3 = ecs_entity(r);
+  ecs_add_local(r, e1, Position, {20, 20});
+  ecs_add_local(r, e2, StaticPosition, {20, 20});
+  ecs_add_local(r, e3, Position, {20, 20});
+  ecs_add_local(r, e3, StaticPosition, {20, 20});
+
+  Position *p1 = ecs_get(r, e1, Position);
+  StaticPosition *p2 = ecs_get(r, e2, StaticPosition);
+  Position *p3 = ecs_get(r, e3, Position);
+  printf("position 1: {%.2f, %.2f}\n", p1->x, p1->y);
+  printf("position 2: {%.2f, %.2f}\n", p2->x, p2->y);
+  printf("position 3: {%.2f, %.2f}\n\n", p3->x, p3->y);
+
+  // Run systems:
+  ecs_run(r, EcsOnUpdate);
+
+  printf("position 1: {%.2f, %.2f}\n", p1->x, p1->y);
+  printf("position 2: {%.2f, %.2f}\n", p2->x, p2->y);
+  printf("position 3: {%.2f, %.2f}\n", p3->x, p3->y);
+
+  ecs_registry_free(r);
+
+  return 0;
+}
+          </code></pre>
+
+        </td>
+      </tr>
+    </table>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <script>
+      hljs.highlightAll();
+    </script>
+
+  </body>
+
+</html>

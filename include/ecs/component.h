@@ -13,14 +13,18 @@ typedef struct {
   uint8_t active;
   uint8_t visible;
 } EntityData;
-#define ENTITYDATA_DEFAULT {1, 1}
+#define ENTITYDATA_ACTIVE {1, 1}
+
+void entity_enable(Registry *r, Entity e, uint8_t active);
+void entity_visible(Registry *r, Entity e, uint8_t visible);
 
 typedef struct {
   Vector2 position;
   Vector2 scale;
   float rotation;
 } Transform2;
-#define TRANSFORM_DEFAULT {{0, 0}, {1, 1}, 0}
+#define TRANSFORM_ZERO {{0, 0}, {1, 1}, 0}
+#define TRANSFORM_POS(x, y) {{x, y}, {1, 1}, 0}
 
 typedef struct {
   Vector2 *vx;
@@ -66,12 +70,12 @@ typedef struct {
 } Sprite;
 
 typedef struct {
-  Script scripts[EcsSystemLayers];
   Script OnEnable;
   Script OnDisable;
   Script OnCollisionEnter;
+  Script scripts[EcsSystemLayers];
 } Behaviour;
-#define BEHAVIOUR_DEFAULT {0}
+#define BEHAVIOUR_EMPTY {0}
 
 void ecs_script(Registry *r, Entity e, Script s, EcsLayer ly);
 

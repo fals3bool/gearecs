@@ -1,4 +1,3 @@
-#include "ecs/system.h"
 #include <scene/manager.h>
 
 #include <stdlib.h>
@@ -9,7 +8,7 @@
 
 Entity ecs_entity_wdata(Scene *sc) {
   Entity e = ecs_entity(sc);
-  ecs_add(sc, e, EntityData, ENTITYDATA_DEFAULT);
+  ecs_add(sc, e, EntityData, ENTITYDATA_ACTIVE);
   return e;
 }
 
