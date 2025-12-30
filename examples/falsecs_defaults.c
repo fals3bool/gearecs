@@ -88,7 +88,7 @@ int main(void) {
   // 5 vertices, r=12, offset=(+0, +0), solid
   Collider col = collider_create(5, 12, 0, (Vector2){0, 0}, 1);
   col = collider_solid(5, 12);  // solid collider - hit others
-  col = collider_hollow(5, 12); // hollow collider - overlaps others
+  col = collider_trigger(5, 12); // hollow collider - overlaps others
   ecs_add_obj(r, e1, Collider, col);
 
   //          //

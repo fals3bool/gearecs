@@ -36,14 +36,14 @@ typedef struct {
   uint8_t solid;
 } Collider;
 
-#define collider_hollow(v, r) collider_create(v, r, 0, VEC2ZERO, 0)
+#define collider_trigger(v, r) collider_create(v, r, 0, VEC2ZERO, 0)
 #define collider_solid(v, r) collider_create(v, r, 0, VEC2ZERO, 1)
 
-#define collider_rotated(v, r, a) collider_create(v, r, a, VEC2ZERO, 0)
-#define collider_rotated_solid(v, r, a) collider_create(v, r, a, VEC2ZERO, 1)
+#define collider_trigger_angle(v, r, a) collider_create(v, r, a, VEC2ZERO, 0)
+#define collider_solid_angle(v, r, a) collider_create(v, r, a, VEC2ZERO, 1)
 
-#define collider_offset(v, r, a, o) collider_create(v, r, a, o, 0)
-#define collider_offset_solid(v, r, a, o) collider_create(v, r, a, o, 1)
+#define collider_trigger_offset(v, r, a, o) collider_create(v, r, a, o, 0)
+#define collider_solid_offset(v, r, a, o) collider_create(v, r, a, o, 1)
 
 Collider collider_create(int vertices, float radius, float rot, Vector2 origin,
                          uint8_t solid);
@@ -52,7 +52,6 @@ typedef struct {
   float mass;
   float damping;
   uint8_t is_static;
-
   Vector2 speed;
   Vector2 acc;
 } RigidBody;

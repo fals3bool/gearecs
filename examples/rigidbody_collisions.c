@@ -75,7 +75,7 @@ int main(void) {
   ecs_add(sc, e4, Transform2, {{-400, -80}, {1, 1}, 0});
 
   Collider col2 = collider_solid(5, 40);
-  Collider col3 = collider_hollow(4, 20);
+  Collider col3 = collider_trigger(4, 20);
   Collider col4 = collider_solid(8, 32);
   ecs_add_obj(sc, e2, Collider, col2);
   ecs_add_obj(sc, e3, Collider, col3);

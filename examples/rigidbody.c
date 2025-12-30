@@ -78,8 +78,8 @@ int main(void) {
   // add rigidbody
   ecs_add(sc, e, RigidBody, {20}); // mass = 20kg.
   ecs_add(sc, e, RigidBody, {20, 0.9f}); // mass = 20kg, damping = 0.9.
-  ecs_add(sc, e, RigidBody, {20, 0.9f, 0}) // with gravity.
-  ecs_add(sc, e, RigidBody, {20, 0.9f, 1}) // without gravity.
+  ecs_add(sc, e, RigidBody, {20, 0.9f, 0}); // with gravity.
+  ecs_add(sc, e, RigidBody, {20, 0.9f, 1}); // without gravity.
   
   // there are some macros available.
   float mass = 40.f;

@@ -27,19 +27,19 @@ void ecs_entity_destroy(Registry *r, Entity e);
 // ########### //
 
 #define ecs_component(registry, C)                                             \
-  Component C##_ = ecs_alloc_component(registry, #C, sizeof(C));
+  Component C##_ = ecs_alloc_component(registry, #C, sizeof(C))
 
 #define ecs_add(registry, entity, C, ...)                                      \
-  ecs_add_component(registry, entity, ecs_cid(registry, #C), &(C)__VA_ARGS__);
+  ecs_add_component(registry, entity, ecs_cid(registry, #C), &(C)__VA_ARGS__)
 
 #define ecs_add_local(registry, entity, C, ...)                                \
-  ecs_add_component(registry, entity, C##_, &(C)__VA_ARGS__);
+  ecs_add_component(registry, entity, C##_, &(C)__VA_ARGS__)
 
 #define ecs_add_obj(registry, entity, C, ...)                                  \
-  ecs_add_component(registry, entity, ecs_cid(registry, #C), &__VA_ARGS__);
+  ecs_add_component(registry, entity, ecs_cid(registry, #C), &__VA_ARGS__)
 
 #define ecs_get(registry, entity, C)                                           \
-  (C *)ecs_get_component(registry, entity, ecs_cid(registry, #C));
+  (C *)ecs_get_component(registry, entity, ecs_cid(registry, #C))
 
 Component ecs_alloc_component(Registry *r, char *name, size_t size);
 void ecs_add_component(Registry *r, Entity e, Component id, void *data);
