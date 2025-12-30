@@ -15,15 +15,61 @@
         <td>
           <h1>FalsECS</h1>
           <p>
-          FalsECS is a light-weight Entity-Component-System Game Engine.
-          bla bla bla...
-          </p>
+          FalsECS is a simple and lightweight Entity-Component-System Game Engine made in C. <br><br>
+          Presents a clean simple and efficient architecture bassed on composition. <br>
+          Entities are identifiers, components are just (struct) data and systems restrict access to logic <br>
+          within a decoupled, predictable and performance oriented design. <br><br>
+          It is a good option for simulations and games made from scratch, supporting Desktop and Web.
           <br><br>
+          </p>
+
+          <pre><code class="language-c">
+#define SCREEN_W 800
+#define SCREEN_H 450
+
+void UPDATE(Registry *r, Entity e) {
+  Transform2 *t = ecs_get(r, e, Transform2);
+  t->rotation += GetFrameTime();
+  Sprite *sp = ecs_get(r, e, Sprite);
+  sp->tint.r++;
+  sp->tint.g++;
+  sp->tint.b++;
+}
+
+int main(void) {
+
+  InitWindow(SCREEN_W, SCREEN_H, "FalsECS &lt;3");
+  Camera2D cam = {{SCREEN_W / 2.f, SCREEN_H / 2.f}, {0, 0}, 0, 1.f};
+  Color bg = {23, 28, 29, 255};
+
+  FalsECS falsecs = falsecs_start(bg);
+  Scene *s = falsecs_scene(&falsecs, cam);
+
+  Entity e = ecs_entity_wdata(s);
+  ecs_add(s, e, Transform2, TRANSFORM_ZERO);
+
+  Image img = GenImageColor(64, 64, WHITE);
+  Texture2D tex = LoadTextureFromImage(img);
+  UnloadImage(img);
+  ecs_add(s, e, Sprite, {tex, {0, 0, 64, 64}, WHITE});
+
+  ecs_system(s, EcsOnUpdate, UPDATE, Transform2, Sprite);
+
+  falsecs_loop(&falsecs);
+
+  falsecs_clean(&falsecs);
+  CloseWindow();
+
+  return 0;
+}
+
+          </code></pre>
         </td>
       </tr>
 
       <tr>
         <td>
+          <h2>Guides & Examples</h2>
           <div class="cards-container">
             <article class="card">
               <div class="card-content">
@@ -132,6 +178,15 @@
 
     </table>
 
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+
+    <script>
+      hljs.highlightAll();
+    </script>
 
   </body>
 </html>
