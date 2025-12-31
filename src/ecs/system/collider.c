@@ -3,20 +3,19 @@
 
 #include <math.h>
 #include <raymath.h>
-#include <stdint.h>
 
 void ecs_transform_collider_system(Registry *r, Entity e) {
   Transform2 *t = ecs_get(r, e, Transform2);
   Collider *c = ecs_get(r, e, Collider);
 
-  float angle = t->rotation + c->rot;
+  float angle = t->rotation;
   for (uint8_t i = 0; i < c->vertices; i++) {
-    c->vx[i].x = c->md[i].x * cosf(angle) - c->md[i].y * sinf(angle) +
-                 t->position.x + c->origin.x;
-    c->vx[i].y = c->md[i].x * sinf(angle) + c->md[i].y * cosf(angle) +
-                 t->position.y + c->origin.y;
-    c->overlap = false;
+    c->vx[i].x =
+        c->md[i].x * cosf(angle) - c->md[i].y * sinf(angle) + t->position.x;
+    c->vx[i].y =
+        c->md[i].x * sinf(angle) + c->md[i].y * cosf(angle) + t->position.y;
   }
+  c->overlap = false;
 }
 
 void ecs_debug_collider_system(Registry *r, Entity e) {
@@ -29,14 +28,6 @@ void ecs_debug_collider_system(Registry *r, Entity e) {
 }
 
 // COLLISIONS
-
-typedef struct {
-  Entity self, other;
-  Transform2 *self_transform, *other_transform;
-  Vector2 normal;
-  Vector2 contact;
-  float distance;
-} Collision;
 
 static uint8_t sat_proj(Transform2 *ta, Collider *ca, Transform2 *tb,
                         Collider *cb, float *min_distance, Vector2 *axis) {
@@ -93,13 +84,12 @@ uint8_t collision_sat(Transform2 *ta, Collider *ca, Transform2 *tb,
 
   output->normal = Vector2Normalize(proj);
   output->distance = distance;
-  output->self_transform = ta;
-  output->other_transform = tb;
 
   return true;
 }
 
-void resolve_collision(Collision *input, RigidBody *ra, RigidBody *rb) {
+void resolve_collision(Collision *input, Transform2 *ta, RigidBody *ra,
+                       Transform2 *tb, RigidBody *rb) {
   float invmassA = (ra && ra->type == RIGIDBODY_DYNAMIC) ? ra->invmass : 0;
   float invmassB = (rb && rb->type == RIGIDBODY_DYNAMIC) ? rb->invmass : 0;
   if (invmassA + invmassB == 0)
@@ -107,10 +97,8 @@ void resolve_collision(Collision *input, RigidBody *ra, RigidBody *rb) {
 
   float deltaMagnitude = input->distance / (invmassA + invmassB);
   Vector2 delta = Vector2Scale(input->normal, deltaMagnitude);
-  input->self_transform->position = Vector2Subtract(
-      input->self_transform->position, Vector2Scale(delta, invmassA));
-  input->other_transform->position = Vector2Add(
-      input->other_transform->position, Vector2Scale(delta, invmassB));
+  ta->position = Vector2Subtract(ta->position, Vector2Scale(delta, invmassA));
+  tb->position = Vector2Add(tb->position, Vector2Scale(delta, invmassB));
 
   Vector2 deltaSpeed = Vector2Subtract(rb ? rb->speed : (Vector2){0, 0},
                                        ra ? ra->speed : (Vector2){0, 0});
@@ -140,13 +128,26 @@ void ecs_collision_system(Registry *r, Entity self) {
     Collider *cb = ecs_get(r, other, Collider);
     RigidBody *rb = ecs_get(r, other, RigidBody);
 
-    Collision collision = {self, other};
+    Collision collision;
     uint8_t overlap = collision_sat(ta, ca, tb, cb, &collision);
+
+    if (overlap) {
+      if (ca->OnCollision) {
+        CollisionEvent event = {self, other, collision};
+        ca->OnCollision(&event);
+      }
+      if (cb->OnCollision) {
+        CollisionEvent event = {
+            other, self, {Vector2Negate(collision.normal), collision.distance}};
+        cb->OnCollision(&event);
+      }
+    }
+
     ca->overlap |= overlap;
     cb->overlap |= overlap;
     overlap &= ca->solid && cb->solid;
 
     if (overlap)
-      resolve_collision(&collision, ra, rb);
+      resolve_collision(&collision, ta, ra, tb, rb);
   }
 }

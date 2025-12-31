@@ -27,26 +27,27 @@ typedef struct {
 #define TRANSFORM_POS(x, y) {{x, y}, {1, 1}, 0}
 
 typedef struct {
+  Vector2 normal;
+  float distance;
+} Collision;
+
+typedef struct {
+  Entity self, other;
+  Collision collision;
+} CollisionEvent;
+
+typedef struct {
   Vector2 *vx;
   Vector2 *md;
-  Vector2 origin;
-  float rot;
   uint8_t vertices;
   uint8_t overlap;
   uint8_t solid;
+  void (*OnCollision)(CollisionEvent *event);
 } Collider;
 
-#define collider_trigger(v, r) collider_create(v, r, 0, VEC2ZERO, 0)
-#define collider_solid(v, r) collider_create(v, r, 0, VEC2ZERO, 1)
-
-#define collider_trigger_angle(v, r, a) collider_create(v, r, a, VEC2ZERO, 0)
-#define collider_solid_angle(v, r, a) collider_create(v, r, a, VEC2ZERO, 1)
-
-#define collider_trigger_offset(v, r, a, o) collider_create(v, r, a, o, 0)
-#define collider_solid_offset(v, r, a, o) collider_create(v, r, a, o, 1)
-
-Collider collider_create(int vertices, float radius, float rot, Vector2 origin,
-                         uint8_t solid);
+Collider collider_create(int vertices, float radius, uint8_t solid);
+#define collider_trigger(v, r) collider_create(v, r, 0)
+#define collider_solid(v, r) collider_create(v, r, 1)
 
 typedef enum {
   RIGIDBODY_STATIC = 0,

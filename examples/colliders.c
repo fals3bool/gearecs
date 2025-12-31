@@ -85,6 +85,11 @@ void script_show_data(Registry *r, Entity self) {
            t->position.y + 40, fontsize, WHITE);
 }
 
+void event_on_collision(CollisionEvent *event) {
+  printf("Entity: {id: %d}, {collision of: %.2f}, {against: %d}\n", event->self,
+         event->collision.distance, event->other);
+}
+
 void load_own_entities(Scene *s) {
 
   // COLLIDER: [SOLID]
@@ -92,6 +97,7 @@ void load_own_entities(Scene *s) {
   Entity A = ecs_entity_wdata(s);
   ecs_add(s, A, Transform2, TRANSFORM_POS(-250, 100));
   Collider colA = collider_solid(5, 16);
+  colA.OnCollision = event_on_collision;
   ecs_add_obj(s, A, Collider, colA);
   ecs_add(s, A, Behaviour, BEHAVIOUR_EMPTY);
   ecs_script(s, A, script_show_data, EcsOnRender);
@@ -101,6 +107,7 @@ void load_own_entities(Scene *s) {
   Entity B = ecs_entity_wdata(s);
   ecs_add(s, B, Transform2, TRANSFORM_POS(-150, -100));
   Collider colB = collider_trigger(4, 20);
+  colB.OnCollision = event_on_collision;
   ecs_add_obj(s, B, Collider, colB);
   ecs_add(s, B, Behaviour, BEHAVIOUR_EMPTY);
   ecs_script(s, B, script_show_data, EcsOnRender);
@@ -141,6 +148,7 @@ void load_own_entities(Scene *s) {
   Entity P = ecs_entity_wdata(s);
   ecs_add(s, P, Transform2, TRANSFORM_ZERO);
   Collider colP = collider_solid(3, 22);
+  colP.OnCollision = event_on_collision;
   ecs_add_obj(s, P, Collider, colP);
   ecs_add(s, P, Behaviour, BEHAVIOUR_EMPTY);
   ecs_add(s, P, RigidBody, rigidbody_create(50, 1.5f, RIGIDBODY_STATIC));

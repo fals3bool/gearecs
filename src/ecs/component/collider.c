@@ -3,14 +3,11 @@
 #include <math.h>
 #include <stdlib.h>
 
-Collider collider_create(int vertices, float radius, float rot, Vector2 origin,
-                         uint8_t solid) {
+Collider collider_create(int vertices, float radius, uint8_t solid) {
   Collider col = {0};
   col.vx = (Vector2 *)malloc(sizeof(Vector2) * vertices);
   col.md = (Vector2 *)malloc(sizeof(Vector2) * vertices);
   col.vertices = vertices;
-  col.origin = origin;
-  col.rot = rot;
   col.solid = solid;
   col.overlap = 0;
 
@@ -20,5 +17,6 @@ Collider collider_create(int vertices, float radius, float rot, Vector2 origin,
     col.md[i] = col.vx[i];
   }
 
+  col.OnCollision = NULL;
   return col;
 }
