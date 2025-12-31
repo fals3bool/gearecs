@@ -48,14 +48,21 @@ int main(void) {
 
 void load_own_entities(Scene *sc) {
   Entity A = ecs_entity_wdata(sc);
-  Entity B = ecs_entity_wdata(sc);
-  ecs_add(sc, A, Transform2, TRANSFORM_POS(20, 20));
-  ecs_add(sc, B, Transform2, TRANSFORM_POS(-20, -20));
+  ecs_add(sc, A, Transform2, TRANSFORM_POS(120, 20));
   Collider col = collider_solid(3, 24);
-  Collider co2 = collider_solid(5, 32);
   ecs_add_obj(sc, A, Collider, col);
-  ecs_add_obj(sc, B, Collider, co2);
   ecs_add(sc, A, Behaviour, BEHAVIOUR_EMPTY);
   ecs_script(sc, A, script_move, EcsOnUpdate);
+
+  Entity B = ecs_entity_wdata(sc);
+  ecs_add(sc, B, Transform2, TRANSFORM_POS(-80, -80));
+  Collider col2 = collider_solid(5, 32);
+  ecs_add_obj(sc, B, Collider, col2);
+
+  Entity C = ecs_entity_wdata(sc);
+  ecs_add(sc, C, Transform2, TRANSFORM_POS(80, 80));
+  Collider col3 = collider_solid(6, 28);
+  ecs_add_obj(sc, C, Collider, col3);
+
   ecs_system(sc, EcsOnRender, ecs_debug_collider_system, Transform2, Collider);
 }

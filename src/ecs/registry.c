@@ -148,12 +148,12 @@ void ecs_alloc_system(Registry *r, EcsLayer ly, Script s, Signature mask) {
 }
 
 void ecs_run(Registry *r, EcsLayer ly) {
-  for (Entity e = 0; e < r->entity_count; e++) {
-    size_t len = r->systems[ly].size;
-    for (size_t i = 0; i < len; i++) {
-      if (!ecs_has_component(r, e, r->systems[ly].list[i].mask))
+  size_t len = r->systems[ly].size;
+  for (size_t s = 0; s < len; s++) {
+    for (Entity e = 0; e < r->entity_count; e++) {
+      if (!ecs_has_component(r, e, r->systems[ly].list[s].mask))
         continue;
-      r->systems[ly].list[i].run(r, e);
+      r->systems[ly].list[s].run(r, e);
     }
   }
 }
