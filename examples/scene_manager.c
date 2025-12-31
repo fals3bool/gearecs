@@ -36,7 +36,7 @@ int main(void) {
   Color bg = {0, 0, 0, 255};
 
   // Start the scene manager.
-  FalsECS falsecs = falsecs_start(bg);
+  FalsECS falsecs = falsecs_start(32, bg);
 
   // Create scene (Scene is the same as Registry).
   Scene *sc = falsecs_scene(&falsecs, cam);

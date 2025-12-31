@@ -12,9 +12,8 @@ Entity ecs_entity_wdata(Scene *sc) {
   return e;
 }
 
-FalsECS falsecs_start(Color bg) {
-  FalsECS falsecs = {bg, 0, NULL};
-  return falsecs;
+FalsECS falsecs_start(uint16_t max_entities, Color bg) {
+  return (FalsECS){bg, 0, max_entities, NULL};
 }
 
 void generic_loop(void *manager) {
@@ -53,7 +52,7 @@ void falsecs_loop(FalsECS *falsecs) {
 }
 
 Scene *falsecs_scene(FalsECS *falsecs, Camera2D camera) {
-  Scene *r = ecs_registry();
+  Scene *r = ecs_registry(falsecs->max_entities);
 
   ecs_component(r, Camera2D);
   ecs_component(r, EntityData);

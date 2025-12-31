@@ -22,7 +22,7 @@ void all_comps(Registry *r, Entity e) {
 }
 
 int main(void) {
-  Registry *r = ecs_registry();
+  Registry *r = ecs_registry(32);
   ecs_component(r, Position);
   ecs_component(r, StaticPosition);
 

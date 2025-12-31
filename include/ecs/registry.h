@@ -6,7 +6,6 @@
 
 typedef struct Registry Registry;
 
-#define MAX_ENTITIES 1024
 typedef uint16_t Entity;
 typedef uint16_t Signature;
 typedef uint16_t Component;
@@ -16,7 +15,7 @@ typedef struct {
   Signature mask;
 } System;
 
-Registry *ecs_registry();
+Registry *ecs_registry(uint16_t max_entities);
 void ecs_registry_free(Registry *r);
 
 Entity ecs_entity(Registry *r);
@@ -92,16 +91,14 @@ typedef enum {
             FOR_EACH_1)(m, r, __VA_ARGS__)
 
 #define ecs_system_local(registry, layer, script, ...)                         \
-  ecs_alloc_system(registry, layer, script,                                    \
+  ecs_add_system(registry, layer, script,                                    \
                    FOR_EACH_l(ECS_SIGNATURE_LOCAL, __VA_ARGS__));
 
 #define ecs_system(registry, layer, script, ...)                               \
-  ecs_alloc_system(registry, layer, script,                                    \
+  ecs_add_system(registry, layer, script,                                    \
                    FOR_EACH(ECS_SIGNATURE, (registry), __VA_ARGS__))
 
-void ecs_alloc_system(Registry *r, EcsLayer ly, Script s, Signature mask);
-void ecs_free_systems(Registry *r);
-
+void ecs_add_system(Registry *r, EcsLayer ly, Script s, Signature mask);
 void ecs_run(Registry *r, EcsLayer ly);
 
 #endif

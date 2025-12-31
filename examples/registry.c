@@ -23,7 +23,7 @@ void PRINT(Registry *r, Entity e) {
 int main(void) {
 
   // ECS REGISTRY
-  Registry *world = ecs_registry();
+  Registry *world = ecs_registry(32);
 
   // ENTITIES
   Entity e0 = ecs_entity(world);

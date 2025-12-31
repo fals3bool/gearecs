@@ -7,7 +7,7 @@ Script script2;
 
 int main(void) {
 
-  Registry *r = ecs_registry();
+  Registry *r = ecs_registry(32);
   Entity e0 = ecs_entity(r);
   Entity e1 = ecs_entity(r);
   Entity e2 = ecs_entity(r);

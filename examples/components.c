@@ -8,7 +8,7 @@ typedef struct {
 
 int main(void) {
 
-  Registry *r = ecs_registry();
+  Registry *r = ecs_registry(32);
   Entity e = ecs_entity(r);
 
   // - - - - - - - - - - //

@@ -5,7 +5,7 @@
 
 int main(void) {
 
-  Registry *r = ecs_registry();
+  Registry *r = ecs_registry(1024);
 
   Entity e0 = ecs_entity(r); // id:0 -> e0 = 0;
   Entity e1 = ecs_entity(r); // id:1 -> e1 = 1;

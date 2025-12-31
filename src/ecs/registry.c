@@ -16,10 +16,12 @@ typedef struct {
 } LayerSystems;
 
 struct Registry {
-  Signature entities[MAX_ENTITIES];
+  Entity max_entities;
+  Signature *entities;
   Entity entity_count;
-  Entity free_entities[MAX_ENTITIES];
+  Entity *free_entities;
   Entity free_count;
+  Entity max_free;
 
   ComponentList *components;
   Component comp_count;
@@ -28,23 +30,45 @@ struct Registry {
 };
 
 void ecs_alloc_systems(Registry *r);
-Registry *ecs_registry() {
+void ecs_free_systems(Registry *r);
+
+void ecs_alloc_entities(Registry *r, Entity max_entities);
+void ecs_free_entities(Registry *r);
+
+Component ecs_alloc_component(Registry *r, char *name, size_t size);
+void ecs_free_components(Registry *r);
+
+Registry *ecs_registry(uint16_t max_entities) {
   Registry *r = malloc(sizeof(Registry));
-  r->entity_count = 0;
-  r->free_count = 0;
-  r->comp_count = 0;
+  r->max_free = 0;
   r->components = NULL;
+  r->comp_count = 0;
   r->systems = NULL;
+  ecs_alloc_entities(r, max_entities);
   ecs_alloc_systems(r);
   return r;
 }
 
 void ecs_registry_free(Registry *r) {
-  while (r->comp_count)
-    free(r->components[--r->comp_count].list);
-  free(r->components);
   ecs_free_systems(r);
+  ecs_free_components(r);
+  ecs_free_entities(r);
   free(r);
+}
+
+void ecs_alloc_entities(Registry *r, Entity max_entities) {
+  r->max_entities = max_entities;
+  r->entities = calloc(max_entities, sizeof(Signature));
+  r->free_entities = calloc(max_entities, sizeof(Entity));
+  r->entity_count = 0;
+  r->free_count = 0;
+}
+
+void ecs_free_entities(Registry *r) {
+  free(r->entities);
+  r->entity_count = 0;
+  free(r->free_entities);
+  r->free_count = 0;
 }
 
 Entity ecs_entity(Registry *r) {
@@ -63,6 +87,9 @@ void ecs_entity_destroy(Registry *r, Entity e) {
   r->free_entities[r->free_count++] = e;
 }
 
+// non-object-oriented encapsulation
+Entity ecs_entity_count(Registry *r) { return r->entity_count; }
+
 // ########### //
 //  COMPONENT  //
 // ########### //
@@ -77,8 +104,15 @@ Component ecs_alloc_component(Registry *r, char *name, size_t size) {
 
   r->components[id].name = name;
   r->components[id].size = size;
-  r->components[id].list = calloc(MAX_ENTITIES, size);
+  r->components[id].list = calloc(r->max_entities, size);
   return id;
+}
+
+void ecs_free_components(Registry *r) {
+  while (r->comp_count)
+    free(r->components[--r->comp_count].list);
+  free(r->components);
+  r->comp_count = 0;
 }
 
 void ecs_add_component(Registry *r, Entity e, Component id, void *data) {
@@ -118,9 +152,6 @@ Component ecs_cid(Registry *r, char *name) {
   return r->comp_count;
 }
 
-// non-object-oriented encapsulation
-Entity ecs_entity_count(Registry *r) { return r->entity_count; }
-
 // ######### //
 //  SYSTEMS  //
 // ######### //
@@ -135,7 +166,7 @@ void ecs_free_systems(Registry *r) {
   free(r->systems);
 }
 
-void ecs_alloc_system(Registry *r, EcsLayer ly, Script s, Signature mask) {
+void ecs_add_system(Registry *r, EcsLayer ly, Script s, Signature mask) {
   size_t cur = r->systems[ly].size++;
   if (cur == 0)
     r->systems[ly].list = malloc(sizeof(System));

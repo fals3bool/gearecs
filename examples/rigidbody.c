@@ -69,7 +69,7 @@ int main(void) {
   Camera2D cam = {{SCREEN_W / 2.f, SCREEN_H / 2.f}, {0, 0}, 0, 1.f};
   Color bg = {0, 0, 0, 255};
 
-  FalsECS falsecs = falsecs_start(bg);
+  FalsECS falsecs = falsecs_start(32, bg);
   Scene *sc = falsecs_scene(&falsecs, cam);
 
   Entity e = ecs_entity_wdata(sc);

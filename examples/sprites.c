@@ -30,7 +30,7 @@ int main(void) {
   cam.offset = (Vector2){SCREEN_W / 2.f, SCREEN_H / 2.f};
   cam.zoom = 1.f;
 
-  FalsECS man = falsecs_start(BLACK);
+  FalsECS man = falsecs_start(32, BLACK);
   Scene *s = falsecs_scene(&man, cam);
 
   Image img = GenImageColor(32, 32, WHITE);
