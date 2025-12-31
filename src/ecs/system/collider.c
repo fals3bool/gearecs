@@ -4,7 +4,6 @@
 #include <math.h>
 #include <raymath.h>
 #include <stdint.h>
-#include <stdio.h>
 
 void ecs_transform_collider_system(Registry *r, Entity e) {
   Transform2 *t = ecs_get(r, e, Transform2);
