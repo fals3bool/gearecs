@@ -48,15 +48,30 @@ typedef struct {
 Collider collider_create(int vertices, float radius, float rot, Vector2 origin,
                          uint8_t solid);
 
+typedef enum {
+  RIGIDBODY_STATIC = 0,
+  RIGIDBODY_DYNAMIC,
+  RIGIDBODY_KINEMATIC
+} BodyType;
+
 typedef struct {
   float mass;
+  float invmass;
   float damping;
-  uint8_t is_static;
+  BodyType type;
+  uint8_t gravity;
   Vector2 speed;
   Vector2 acc;
 } RigidBody;
-#define RIGIDBODY_STATIC(m, d) {(m > 0) ? m : INFINITY, d, 1, {0, 0}, {0, 0}}
-#define RIGIDBODY_DYNAMIC(m, d) {(m > 0) ? m : INFINITY, d, 0, {0, 0}, {0, 0}}
+
+#define rigidbody_create(mass, damping, type)                                  \
+  {(mass > 0) ? mass : INFINITY,                                               \
+   (mass > 0) ? 1.f / mass : 0,                                                \
+   damping,                                                                    \
+   type,                                                                       \
+   (type == RIGIDBODY_DYNAMIC) ? 1 : 0,                                        \
+   {0, 0},                                                                     \
+   {0, 0}}
 
 void rb_apply_force(RigidBody *rb, Vector2 force);
 void rb_apply_impulse(RigidBody *rb, Vector2 impulse);

@@ -1,3 +1,4 @@
+#include "ecs/component.h"
 #include <scene/manager.h>
 
 #include <raymath.h>
@@ -76,16 +77,14 @@ int main(void) {
   ecs_add(sc, e, Transform2, TRANSFORM_ZERO);
 
   // add rigidbody
-  ecs_add(sc, e, RigidBody, {20}); // mass = 20kg.
-  ecs_add(sc, e, RigidBody, {20, 0.9f}); // mass = 20kg, damping = 0.9.
-  ecs_add(sc, e, RigidBody, {20, 0.9f, 0}); // with gravity.
-  ecs_add(sc, e, RigidBody, {20, 0.9f, 1}); // without gravity.
-  
-  // there are some macros available.
   float mass = 40.f;
   float dam = 2.7f;
-  ecs_add(sc, e, RigidBody, RIGIDBODY_DYNAMIC(mass, dam)); // with gravity
-  ecs_add(sc, e, RigidBody, RIGIDBODY_STATIC(mass, dam)); // without gravity
+  ecs_add(sc, e, RigidBody,
+          rigidbody_create(mass, dam, RIGIDBODY_DYNAMIC)); // with gravity
+  RigidBody rb =
+      rigidbody_create(mass, dam, RIGIDBODY_DYNAMIC); // without gravity
+  rb.gravity = false;
+  ecs_add_obj(sc, e, RigidBody, rb);
 
   ecs_add(sc, e, Behaviour, {0});
   ecs_script(sc, e, move_self, EcsOnFixedUpdate);

@@ -87,7 +87,7 @@ int main(void) {
 
   // 5 vertices, r=12, offset=(+0, +0), solid
   Collider col = collider_create(5, 12, 0, (Vector2){0, 0}, 1);
-  col = collider_solid(5, 12);  // solid collider - hit others
+  col = collider_solid(5, 12);   // solid collider - hit others
   col = collider_trigger(5, 12); // hollow collider - overlaps others
   ecs_add_obj(r, e1, Collider, col);
 
@@ -97,13 +97,13 @@ int main(void) {
   ecs_component(r, RigidBody);
 
   // mass = 20g // dynamic = gravity
-  ecs_add(r, e1, RigidBody, RIGIDBODY_DYNAMIC(20, 0));
+  ecs_add(r, e1, RigidBody, rigidbody_create(20, 0, RIGIDBODY_DYNAMIC));
 
   // mass = 20g, damping = 0.7 // static = no gravity
-  ecs_add(r, e2, RigidBody, RIGIDBODY_STATIC(20, 0.7f));
+  ecs_add(r, e2, RigidBody, rigidbody_create(20, 0.7f, RIGIDBODY_STATIC));
 
-  // 30 kg // static = 0 (no gravity).
-  ecs_add(r, e3, RigidBody, {30});
+  // mass = 20g, damping = 0.7 // kinematic = no default logic
+  ecs_add(r, e2, RigidBody, rigidbody_create(20, 0.7f, RIGIDBODY_KINEMATIC));
 
   RigidBody *rb = ecs_get(r, e2, RigidBody);
   rb_apply_force(rb, (Vector2){20, 0});   // changes acceleration
