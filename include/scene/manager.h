@@ -4,21 +4,16 @@
 #include <ecs/component.h>
 #include <ecs/system.h>
 
-typedef Registry Scene;
-
 typedef struct {
-  Color bg;
+  ECS *ecs;
+  Color background;
   float fixed_time;
-  uint32_t max_entities;
-  Registry *scene;
-} FalsECS;
+} GameScene;
 
-Entity ecs_entity_wdata(Scene *sc);
+Entity EcsEntityData(ECS *ecs);
 
-FalsECS falsecs_start(uint16_t max_entities, Color bg);
-void falsecs_loop(FalsECS *falsecs);
-
-Scene *falsecs_scene(FalsECS *falsecs, Camera2D camera);
-void falsecs_clean(FalsECS *falsecs);
+GameScene SceneStart(uint16_t max_entities, Camera2D camera);
+void SceneLoop(GameScene *scene);
+void SceneClean(GameScene *scene);
 
 #endif

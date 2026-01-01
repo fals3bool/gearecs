@@ -1,9 +1,8 @@
 #include <ecs/component.h>
 
-#include <math.h>
 #include <stdlib.h>
 
-Collider collider_create(int vertices, float radius, uint8_t solid) {
+Collider ColliderCreate(int vertices, float radius, uint8_t solid) {
   Collider col = {0};
   col.vx = (Vector2 *)malloc(sizeof(Vector2) * vertices);
   col.md = (Vector2 *)malloc(sizeof(Vector2) * vertices);

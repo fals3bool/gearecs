@@ -1,6 +1,6 @@
-#include <assert.h>
 #include <ecs/registry.h>
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -15,7 +15,7 @@ typedef struct {
   size_t size;
 } LayerSystems;
 
-struct Registry {
+struct ECS {
   Entity max_entities;
   Signature *entities;
   Entity entity_count;
@@ -29,162 +29,165 @@ struct Registry {
   LayerSystems *systems;
 };
 
-void ecs_alloc_systems(Registry *r);
-void ecs_free_systems(Registry *r);
+void EcsAllocSystems(ECS *ecs);
+void EcsFreeSystems(ECS *ecs);
 
-void ecs_alloc_entities(Registry *r, Entity max_entities);
-void ecs_free_entities(Registry *r);
+void EcsAllocEntities(ECS *ecs, Entity max_entities);
+void EcsFreeEntities(ECS *ecs);
 
-Component ecs_alloc_component(Registry *r, char *name, size_t size);
-void ecs_free_components(Registry *r);
+void EcsFreeComponents(ECS *ecs);
 
-Registry *ecs_registry(uint16_t max_entities) {
-  Registry *r = malloc(sizeof(Registry));
-  r->max_free = 0;
-  r->components = NULL;
-  r->comp_count = 0;
-  r->systems = NULL;
-  ecs_alloc_entities(r, max_entities);
-  ecs_alloc_systems(r);
-  return r;
+ECS *EcsCreate(uint16_t max_entities) {
+  ECS *ecs = malloc(sizeof(ECS));
+  ecs->max_free = 0;
+  ecs->components = NULL;
+  ecs->comp_count = 0;
+  ecs->systems = NULL;
+  EcsAllocEntities(ecs, max_entities);
+  EcsAllocSystems(ecs);
+  return ecs;
 }
 
-void ecs_registry_free(Registry *r) {
-  ecs_free_systems(r);
-  ecs_free_components(r);
-  ecs_free_entities(r);
-  free(r);
+void EcsFree(ECS *ecs) {
+  EcsFreeSystems(ecs);
+  EcsFreeComponents(ecs);
+  EcsFreeEntities(ecs);
+  free(ecs);
 }
 
-void ecs_alloc_entities(Registry *r, Entity max_entities) {
-  r->max_entities = max_entities;
-  r->entities = calloc(max_entities, sizeof(Signature));
-  r->free_entities = calloc(max_entities, sizeof(Entity));
-  r->entity_count = 0;
-  r->free_count = 0;
+// ######## //
+//  ENTITY  //
+// ######## //
+
+void EcsAllocEntities(ECS *ecs, Entity max_entities) {
+  ecs->max_entities = max_entities;
+  ecs->entities = calloc(max_entities, sizeof(Signature));
+  ecs->free_entities = calloc(max_entities, sizeof(Entity));
+  ecs->entity_count = 0;
+  ecs->free_count = 0;
 }
 
-void ecs_free_entities(Registry *r) {
-  free(r->entities);
-  r->entity_count = 0;
-  free(r->free_entities);
-  r->free_count = 0;
+void EcsFreeEntities(ECS *ecs) {
+  free(ecs->entities);
+  ecs->entity_count = 0;
+  free(ecs->free_entities);
+  ecs->free_count = 0;
 }
 
-Entity ecs_entity(Registry *r) {
+Entity EcsEntity(ECS *ecs) {
   Entity e;
-  if (r->free_count > 0)
-    e = r->free_entities[--r->free_count];
+  if (ecs->free_count > 0)
+    e = ecs->free_entities[--ecs->free_count];
   else
-    e = r->entity_count++;
-  r->entities[e] = 0;
+    e = ecs->entity_count++;
+  ecs->entities[e] = 0;
   return e;
 }
 
-void ecs_entity_destroy(Registry *r, Entity e) {
-  for (Component c = 0; c < r->comp_count; c++)
-    ecs_remove_component(r, e, c);
-  r->free_entities[r->free_count++] = e;
+void EcsEntityDestroy(ECS *ecs, Entity e) {
+  for (Component c = 0; c < ecs->comp_count; c++)
+    EcsRemoveComponent(ecs, e, c);
+  ecs->free_entities[ecs->free_count++] = e;
 }
 
 // non-object-oriented encapsulation
-Entity ecs_entity_count(Registry *r) { return r->entity_count; }
+Entity EcsEntityCount(ECS *ecs) { return ecs->entity_count; }
 
 // ########### //
 //  COMPONENT  //
 // ########### //
 
-Component ecs_alloc_component(Registry *r, char *name, size_t size) {
-  Component id = r->comp_count++;
+Component EcsRegisterComponent(ECS *ecs, char *name, size_t size) {
+  Component id = ecs->comp_count++;
   if (id == 0)
-    r->components = malloc(sizeof(ComponentList));
+    ecs->components = malloc(sizeof(ComponentList));
   else
-    r->components =
-        realloc(r->components, sizeof(ComponentList) * r->comp_count);
+    ecs->components =
+        realloc(ecs->components, sizeof(ComponentList) * ecs->comp_count);
 
-  r->components[id].name = name;
-  r->components[id].size = size;
-  r->components[id].list = calloc(r->max_entities, size);
+  ecs->components[id].name = name;
+  ecs->components[id].size = size;
+  ecs->components[id].list = calloc(ecs->max_entities, size);
   return id;
 }
 
-void ecs_free_components(Registry *r) {
-  while (r->comp_count)
-    free(r->components[--r->comp_count].list);
-  free(r->components);
-  r->comp_count = 0;
+void EcsFreeComponents(ECS *ecs) {
+  while (ecs->comp_count)
+    free(ecs->components[--ecs->comp_count].list);
+  free(ecs->components);
+  ecs->comp_count = 0;
 }
 
-void ecs_add_component(Registry *r, Entity e, Component id, void *data) {
-  assert(id < r->comp_count && "Component does not exist!");
-  size_t size = r->components[id].size;
-  void *dest = r->components[id].list + e * size;
+void EcsAddComponent(ECS *ecs, Entity e, Component id, void *data) {
+  assert(id < ecs->comp_count && "Component does not exist!");
+  size_t size = ecs->components[id].size;
+  void *dest = ecs->components[id].list + e * size;
   memcpy(dest, data, size);
-  r->entities[e] |= (1 << id);
+  ecs->entities[e] |= (1 << id);
 }
 
-void *ecs_get_component(Registry *r, Entity e, Component id) {
-  assert(id < r->comp_count && "Component does not exist!");
-  if (!ecs_has_component(r, e, (1 << id)))
+void *EcsGetComponent(ECS *ecs, Entity e, Component id) {
+  assert(id < ecs->comp_count && "Component does not exist!");
+  if (!EcsHasComponent(ecs, e, (1 << id)))
     return NULL;
-  return r->components[id].list + e * r->components[id].size;
+  return ecs->components[id].list + e * ecs->components[id].size;
 }
 
-void ecs_remove_component(Registry *r, Entity e, Component id) {
-  assert(id < r->comp_count && "Component does not exist!");
-  if (!ecs_has_component(r, e, (1 << id)))
+void EcsRemoveComponent(ECS *ecs, Entity e, Component id) {
+  assert(id < ecs->comp_count && "Component does not exist!");
+  if (!EcsHasComponent(ecs, e, (1 << id)))
     return;
-  size_t size = r->components[id].size;
-  void *dest = r->components[id].list + e * size;
+  size_t size = ecs->components[id].size;
+  void *dest = ecs->components[id].list + e * size;
   memset(dest, 0, size);
-  r->entities[e] &= ~(1 << id);
+  ecs->entities[e] &= ~(1 << id);
 }
 
-int ecs_has_component(Registry *r, Entity e, Signature mask) {
-  return (r->entities[e] & mask) == mask;
+int EcsHasComponent(ECS *ecs, Entity e, Signature mask) {
+  return (ecs->entities[e] & mask) == mask;
 }
 
-Component ecs_cid(Registry *r, char *name) {
-  for (Component id = 0; id < r->comp_count; id++) {
-    if (strcmp(r->components[id].name, name) == 0)
+Component EcsCID(ECS *ecs, char *name) {
+  for (Component id = 0; id < ecs->comp_count; id++) {
+    if (strcmp(ecs->components[id].name, name) == 0)
       return id;
   }
-  return r->comp_count;
+  return ecs->comp_count;
 }
 
 // ######### //
 //  SYSTEMS  //
 // ######### //
 
-void ecs_alloc_systems(Registry *r) {
-  r->systems = calloc(EcsSystemLayers, sizeof(LayerSystems));
+void EcsAllocSystems(ECS *ecs) {
+  ecs->systems = calloc(EcsSystemLayers, sizeof(LayerSystems));
 }
 
-void ecs_free_systems(Registry *r) {
+void EcsFreeSystems(ECS *ecs) {
   for (int i = 0; i < EcsSystemLayers; i++)
-    free(r->systems[i].list);
-  free(r->systems);
+    free(ecs->systems[i].list);
+  free(ecs->systems);
 }
 
-void ecs_add_system(Registry *r, EcsLayer ly, Script s, Signature mask) {
-  size_t cur = r->systems[ly].size++;
+void EcsAddSystem(ECS *ecs, Script s, EcsLayer ly, Signature mask) {
+  size_t cur = ecs->systems[ly].size++;
   if (cur == 0)
-    r->systems[ly].list = malloc(sizeof(System));
+    ecs->systems[ly].list = malloc(sizeof(System));
   else
-    r->systems[ly].list =
-        realloc(r->systems[ly].list, sizeof(System) * r->systems[ly].size);
+    ecs->systems[ly].list =
+        realloc(ecs->systems[ly].list, sizeof(System) * ecs->systems[ly].size);
 
-  r->systems[ly].list[cur].run = s;
-  r->systems[ly].list[cur].mask = mask;
+  ecs->systems[ly].list[cur].run = s;
+  ecs->systems[ly].list[cur].mask = mask;
 }
 
-void ecs_run(Registry *r, EcsLayer ly) {
-  size_t len = r->systems[ly].size;
+void EcsRun(ECS *ecs, EcsLayer ly) {
+  size_t len = ecs->systems[ly].size;
   for (size_t s = 0; s < len; s++) {
-    for (Entity e = 0; e < r->entity_count; e++) {
-      if (!ecs_has_component(r, e, r->systems[ly].list[s].mask))
+    for (Entity e = 0; e < ecs->entity_count; e++) {
+      if (!EcsHasComponent(ecs, e, ecs->systems[ly].list[s].mask))
         continue;
-      r->systems[ly].list[s].run(r, e);
+      ecs->systems[ly].list[s].run(ecs, e);
     }
   }
 }

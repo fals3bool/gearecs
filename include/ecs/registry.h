@@ -4,52 +4,51 @@
 #include <stddef.h>
 #include <stdint.h>
 
-typedef struct Registry Registry;
-
+typedef struct ECS ECS;
 typedef uint16_t Entity;
 typedef uint16_t Signature;
 typedef uint16_t Component;
-typedef void (*Script)(Registry *, Entity);
+typedef void (*Script)(ECS *, Entity);
 typedef struct {
   Script run;
   Signature mask;
 } System;
 
-Registry *ecs_registry(uint16_t max_entities);
-void ecs_registry_free(Registry *r);
+ECS *EcsCreate(uint16_t max_entities);
+void EcsFree(ECS *ecs);
 
-Entity ecs_entity(Registry *r);
-void ecs_entity_destroy(Registry *r, Entity e);
+Entity EcsEntity(ECS *ecs);
+void EcsEntityDestroy(ECS *ecs, Entity e);
+
+// non-object-oriented encapsulation
+Entity EcsEntityCount(ECS *ecs);
 
 // ########### //
 //  COMPONENT  //
 // ########### //
 
-#define ecs_component(registry, C)                                             \
-  Component C##_ = ecs_alloc_component(registry, #C, sizeof(C))
+#define EcsComponent(registry, C)                                              \
+  Component C##_ = EcsRegisterComponent(registry, #C, sizeof(C))
 
-#define ecs_add(registry, entity, C, ...)                                      \
-  ecs_add_component(registry, entity, ecs_cid(registry, #C), &(C)__VA_ARGS__)
+#define EcsAdd(registry, entity, C, ...)                                       \
+  EcsAddComponent(registry, entity, EcsCID(registry, #C), &(C)__VA_ARGS__)
 
-#define ecs_add_local(registry, entity, C, ...)                                \
-  ecs_add_component(registry, entity, C##_, &(C)__VA_ARGS__)
+#define EcsAddLocal(registry, entity, C, ...)                                  \
+  EcsAddComponent(registry, entity, C##_, &(C)__VA_ARGS__)
 
-#define ecs_add_obj(registry, entity, C, ...)                                  \
-  ecs_add_component(registry, entity, ecs_cid(registry, #C), &__VA_ARGS__)
+#define EcsAddExt(registry, entity, C, ...)                                    \
+  EcsAddComponent(registry, entity, EcsCID(registry, #C), &__VA_ARGS__)
 
-#define ecs_get(registry, entity, C)                                           \
-  (C *)ecs_get_component(registry, entity, ecs_cid(registry, #C))
+#define EcsGet(registry, entity, C)                                            \
+  (C *)EcsGetComponent(registry, entity, EcsCID(registry, #C))
 
-Component ecs_alloc_component(Registry *r, char *name, size_t size);
-void ecs_add_component(Registry *r, Entity e, Component id, void *data);
-void ecs_remove_component(Registry *r, Entity e, Component id);
-void *ecs_get_component(Registry *r, Entity e, Component id);
+Component EcsRegisterComponent(ECS *ecs, char *name, size_t size);
+void EcsAddComponent(ECS *ecs, Entity e, Component id, void *data);
+void EcsRemoveComponent(ECS *ecs, Entity e, Component id);
+void *EcsGetComponent(ECS *ecs, Entity e, Component id);
 
-int ecs_has_component(Registry *r, Entity e, Signature mask);
-Component ecs_cid(Registry *r, char *name);
-
-// non-object-oriented encapsulation
-Entity ecs_entity_count(Registry *r);
+int EcsHasComponent(ECS *ecs, Entity e, Signature mask);
+Component EcsCID(ECS *ecs, char *name);
 
 // ######### //
 //  SYSTEMS  //
@@ -69,36 +68,34 @@ typedef enum {
 
 #define GET_MACRO(_1, _2, _3, _4, NAME, ...) NAME
 
-#define ECS_SIGNATURE_LOCAL(C) (1ULL << C##_)
-#define ECS_SIGNATURE(r, C) (1ULL << ecs_cid((r), #C))
+#define EcsSignatureLocal(C) (1ULL << C##_)
+#define EcsSignature(ecs, C) (1ULL << EcsCID((ecs), #C))
 
 #define FOR_EACH_l1(m, x) m(x)
 #define FOR_EACH_l2(m, x, ...) m(x) | FOR_EACH_l1(m, __VA_ARGS__)
 #define FOR_EACH_l3(m, x, ...) m(x) | FOR_EACH_l2(m, __VA_ARGS__)
 #define FOR_EACH_l4(m, x, ...) m(x) | FOR_EACH_l3(m, __VA_ARGS__)
 
-#define FOR_EACH_1(m, r, x) m(r, x)
-#define FOR_EACH_2(m, r, x, ...) m(r, x) | FOR_EACH_1(m, r, __VA_ARGS__)
-#define FOR_EACH_3(m, r, x, ...) m(r, x) | FOR_EACH_2(m, r, __VA_ARGS__)
-#define FOR_EACH_4(m, r, x, ...) m(r, x) | FOR_EACH_3(m, r, __VA_ARGS__)
+#define FOR_EACH_1(m, ecs, x) m(ecs, x)
+#define FOR_EACH_2(m, ecs, x, ...) m(ecs, x) | FOR_EACH_1(m, ecs, __VA_ARGS__)
+#define FOR_EACH_3(m, ecs, x, ...) m(ecs, x) | FOR_EACH_2(m, ecs, __VA_ARGS__)
+#define FOR_EACH_4(m, ecs, x, ...) m(ecs, x) | FOR_EACH_3(m, ecs, __VA_ARGS__)
 
 #define FOR_EACH_l(m, ...)                                                     \
   GET_MACRO(__VA_ARGS__, FOR_EACH_l4, FOR_EACH_l3, FOR_EACH_l2,                \
             FOR_EACH_l1)(m, __VA_ARGS__)
 
-#define FOR_EACH(m, r, ...)                                                    \
+#define FOR_EACH(m, ecs, ...)                                                  \
   GET_MACRO(__VA_ARGS__, FOR_EACH_4, FOR_EACH_3, FOR_EACH_2,                   \
-            FOR_EACH_1)(m, r, __VA_ARGS__)
+            FOR_EACH_1)(m, ecs, __VA_ARGS__)
 
-#define ecs_system_local(registry, layer, script, ...)                         \
-  ecs_add_system(registry, layer, script,                                    \
-                   FOR_EACH_l(ECS_SIGNATURE_LOCAL, __VA_ARGS__));
+#define EcsSystemLocal(ecs, script, layer, ...)                                \
+  EcsAddSystem(ecs, script, layer, FOR_EACH_l(EcsSignatureLocal, __VA_ARGS__))
 
-#define ecs_system(registry, layer, script, ...)                               \
-  ecs_add_system(registry, layer, script,                                    \
-                   FOR_EACH(ECS_SIGNATURE, (registry), __VA_ARGS__))
+#define EcsSystem(ecs, script, layer, ...)                                     \
+  EcsAddSystem(ecs, script, layer, FOR_EACH(EcsSignature, (ecs), __VA_ARGS__))
 
-void ecs_add_system(Registry *r, EcsLayer ly, Script s, Signature mask);
-void ecs_run(Registry *r, EcsLayer ly);
+void EcsAddSystem(ECS *ecs, Script s, EcsLayer ly, Signature mask);
+void EcsRun(ECS *ecs, EcsLayer ly);
 
 #endif
