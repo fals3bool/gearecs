@@ -1,45 +1,15 @@
 #include <ecs/component.h>
 #include <ecs/system.h>
 
-void bsy(Registry *r, Entity e, EcsLayer ly) {
-  Behaviour *beh = ecs_get(r, e, Behaviour);
+void bsy(ECS *ecs, Entity e, EcsLayer ly) {
+  Behaviour *beh = EcsGet(ecs, e, Behaviour);
   if (beh->scripts[ly])
-    beh->scripts[ly](r, e);
+    beh->scripts[ly](ecs, e);
 }
 
-void ecs_behaviour_system_start(Registry *r, Entity e) {
-  EntityData *ed = ecs_get(r, e, EntityData);
-  if (!ed->active)
-    return;
-  bsy(r, e, EcsOnStart);
-}
-void ecs_behaviour_system_update(Registry *r, Entity e) {
-  EntityData *ed = ecs_get(r, e, EntityData);
-  if (!ed->active)
-    return;
-  bsy(r, e, EcsOnUpdate);
-}
-void ecs_behaviour_system_late(Registry *r, Entity e) {
-  EntityData *ed = ecs_get(r, e, EntityData);
-  if (!ed->active)
-    return;
-  bsy(r, e, EcsOnLateUpdate);
-}
-void ecs_behaviour_system_fixed(Registry *r, Entity e) {
-  EntityData *ed = ecs_get(r, e, EntityData);
-  if (!ed->active)
-    return;
-  bsy(r, e, EcsOnFixedUpdate);
-}
-void ecs_behaviour_system_render(Registry *r, Entity e) {
-  EntityData *ed = ecs_get(r, e, EntityData);
-  if (!ed->visible)
-    return;
-  bsy(r, e, EcsOnRender);
-}
-void ecs_behaviour_system_gui(Registry *r, Entity e) {
-  EntityData *ed = ecs_get(r, e, EntityData);
-  if (!ed->visible)
-    return;
-  bsy(r, e, EcsOnGui);
-}
+void BehaviourStartSystem(ECS *ecs, Entity e) { bsy(ecs, e, EcsOnStart); }
+void BehaviourUpdateSystem(ECS *ecs, Entity e) { bsy(ecs, e, EcsOnUpdate); }
+void BehaviourLateSystem(ECS *ecs, Entity e) { bsy(ecs, e, EcsOnLateUpdate); }
+void BehaviourFixedSystem(ECS *ecs, Entity e) { bsy(ecs, e, EcsOnFixedUpdate); }
+void BehaviourRenderSystem(ECS *ecs, Entity e) { bsy(ecs, e, EcsOnRender); }
+void BehaviourGuiSystem(ECS *ecs, Entity e) { bsy(ecs, e, EcsOnGui); }

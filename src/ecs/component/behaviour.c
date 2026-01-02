@@ -1,6 +1,6 @@
 #include <ecs/component.h>
 
-void ecs_script(Registry *r, Entity e, Script s, EcsLayer ly) {
-  Behaviour *beh = ecs_get(r, e, Behaviour);
+void EcsScript(ECS *ecs, Entity e, Script s, EcsLayer ly) {
+  Behaviour *beh = EcsGet(ecs, e, Behaviour);
   beh->scripts[ly] = s;
 }

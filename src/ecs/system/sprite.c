@@ -1,13 +1,14 @@
-#include <ecs/system.h>
 #include <ecs/component.h>
+#include <ecs/system.h>
 
-void ecs_sprite_system(Registry *r, Entity e) {
-  Transform2 *t = ecs_get(r,e , Transform2);
-  Sprite *sp = ecs_get(r, e, Sprite);
+void SpriteSystem(ECS *ecs, Entity e) {
+  Transform2 *t = EcsGet(ecs, e, Transform2);
+  Sprite *sp = EcsGet(ecs, e, Sprite);
 
   float tw = sp->src.width * t->scale.x;
   float th = sp->src.height * t->scale.y;
   Rectangle dest = {t->position.x, t->position.y, tw, th};
-  Vector2 origin = {tw/2, th/2};
-  DrawTexturePro(sp->tex, sp->src, dest, origin, t->rotation * RAD2DEG, sp->tint);
+  Vector2 origin = {tw / 2, th / 2};
+  DrawTexturePro(sp->tex, sp->src, dest, origin, t->rotation * RAD2DEG,
+                 sp->tint);
 }

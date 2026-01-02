@@ -1,9 +1,9 @@
 #include <ecs/component.h>
 #include <ecs/system.h>
 
-void ecs_physics_system(Registry *r, Entity e) {
-  RigidBody *rb = ecs_get(r, e, RigidBody);
-  Transform2 *t = ecs_get(r, e, Transform2);
+void PhysicsSystem(ECS *ecs, Entity e) {
+  RigidBody *rb = EcsGet(ecs, e, RigidBody);
+  Transform2 *t = EcsGet(ecs, e, Transform2);
 
   rb->speed.x += rb->acc.x * ECS_FIXED_DELTATIME;
   rb->speed.y += rb->acc.y * ECS_FIXED_DELTATIME;
@@ -12,14 +12,14 @@ void ecs_physics_system(Registry *r, Entity e) {
   t->position.y += rb->speed.y * ECS_FIXED_DELTATIME;
 
   if (rb->damping > 0.f)
-    rb_apply_damping(rb);
+    BodyApplyDamping(rb);
 }
 
-void ecs_gravity_system(Registry *r, Entity e) {
-  RigidBody *rb = ecs_get(r, e, RigidBody);
+void GravitySystem(ECS *ecs, Entity e) {
+  RigidBody *rb = EcsGet(ecs, e, RigidBody);
   if (!(rb->type == RIGIDBODY_DYNAMIC && rb->gravity))
     return;
 
   Vector2 w = {0, 9.8f * rb->mass};
-  rb_apply_force(rb, w);
+  BodyApplyForce(rb, w);
 }

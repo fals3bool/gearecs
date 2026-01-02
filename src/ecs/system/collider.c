@@ -1,12 +1,11 @@
 #include <ecs/component.h>
 #include <ecs/system.h>
 
-#include <math.h>
 #include <raymath.h>
 
-void ecs_transform_collider_system(Registry *r, Entity e) {
-  Transform2 *t = ecs_get(r, e, Transform2);
-  Collider *c = ecs_get(r, e, Collider);
+void TransformColliderSystem(ECS *ecs, Entity e) {
+  Transform2 *t = EcsGet(ecs, e, Transform2);
+  Collider *c = EcsGet(ecs, e, Collider);
 
   float angle = t->rotation;
   for (uint8_t i = 0; i < c->vertices; i++) {
@@ -18,8 +17,8 @@ void ecs_transform_collider_system(Registry *r, Entity e) {
   c->overlap = false;
 }
 
-void ecs_debug_collider_system(Registry *r, Entity e) {
-  Collider *col = ecs_get(r, e, Collider);
+void DebugColliderSystem(ECS *ecs, Entity e) {
+  Collider *col = EcsGet(ecs, e, Collider);
   for (uint8_t i = 0; i < col->vertices; i++) {
     Vector2 p = col->vx[i];
     Vector2 q = col->vx[(i + 1) % col->vertices];
@@ -29,8 +28,8 @@ void ecs_debug_collider_system(Registry *r, Entity e) {
 
 // COLLISIONS
 
-static uint8_t sat_proj(Transform2 *ta, Collider *ca, Transform2 *tb,
-                        Collider *cb, float *min_distance, Vector2 *axis) {
+static uint8_t SatProj(Transform2 *ta, Collider *ca, Transform2 *tb,
+                       Collider *cb, float *min_distance, Vector2 *axis) {
   for (uint8_t i = 0; i < ca->vertices; i++) {
     uint8_t j = (i + 1) % ca->vertices;
 
@@ -63,15 +62,15 @@ static uint8_t sat_proj(Transform2 *ta, Collider *ca, Transform2 *tb,
   return true;
 }
 
-uint8_t collision_sat(Transform2 *ta, Collider *ca, Transform2 *tb,
-                      Collider *cb, Collision *output) {
+uint8_t CollisionSat(Transform2 *ta, Collider *ca, Transform2 *tb, Collider *cb,
+                     Collision *output) {
   float distance = INFINITY;
   Vector2 proj = {0, 0};
 
-  if (!sat_proj(ta, ca, tb, cb, &distance, &proj))
+  if (!SatProj(ta, ca, tb, cb, &distance, &proj))
     return false;
 
-  if (!sat_proj(tb, cb, ta, ca, &distance, &proj))
+  if (!SatProj(tb, cb, ta, ca, &distance, &proj))
     return false;
 
   Vector2 delta = {tb->position.x - ta->position.x,
@@ -88,8 +87,8 @@ uint8_t collision_sat(Transform2 *ta, Collider *ca, Transform2 *tb,
   return true;
 }
 
-void resolve_collision(Collision *input, Transform2 *ta, RigidBody *ra,
-                       Transform2 *tb, RigidBody *rb) {
+void ResolveCollision(Collision *input, Transform2 *ta, RigidBody *ra,
+                      Transform2 *tb, RigidBody *rb) {
   float invmassA = (ra && ra->type == RIGIDBODY_DYNAMIC) ? ra->invmass : 0;
   float invmassB = (rb && rb->type == RIGIDBODY_DYNAMIC) ? rb->invmass : 0;
   if (invmassA + invmassB == 0)
@@ -115,21 +114,23 @@ void resolve_collision(Collision *input, Transform2 *ta, RigidBody *ra,
     rb->speed = Vector2Add(rb->speed, Vector2Scale(impulse, invmassB));
 }
 
-void ecs_collision_system(Registry *r, Entity self) {
-  Transform2 *ta = ecs_get(r, self, Transform2);
-  Collider *ca = ecs_get(r, self, Collider);
-  RigidBody *ra = ecs_get(r, self, RigidBody);
+void CollisionSystem(ECS *ecs, Entity self) {
+  Transform2 *ta = EcsGet(ecs, self, Transform2);
+  Collider *ca = EcsGet(ecs, self, Collider);
+  RigidBody *ra = EcsGet(ecs, self, RigidBody);
 
-  Signature mask = ECS_SIGNATURE(r, Transform2) & ECS_SIGNATURE(r, Collider);
-  for (Entity other = self + 1; other < ecs_entity_count(r); ++other) {
-    if (!ecs_has_component(r, other, mask))
+  Signature mask = EcsSignature(ecs, Transform2) & EcsSignature(ecs, Collider);
+  for (Entity other = self + 1; other < EcsEntityCount(ecs); ++other) {
+    if (!EcsHasComponent(ecs, other, mask))
       continue;
-    Transform2 *tb = ecs_get(r, other, Transform2);
-    Collider *cb = ecs_get(r, other, Collider);
-    RigidBody *rb = ecs_get(r, other, RigidBody);
+    if (!EcsEntityIsActive(ecs, other))
+      continue;
+    Transform2 *tb = EcsGet(ecs, other, Transform2);
+    Collider *cb = EcsGet(ecs, other, Collider);
+    RigidBody *rb = EcsGet(ecs, other, RigidBody);
 
     Collision collision;
-    uint8_t overlap = collision_sat(ta, ca, tb, cb, &collision);
+    uint8_t overlap = CollisionSat(ta, ca, tb, cb, &collision);
 
     if (overlap) {
       if (ca->OnCollision) {
@@ -148,6 +149,6 @@ void ecs_collision_system(Registry *r, Entity self) {
     overlap &= ca->solid && cb->solid;
 
     if (overlap)
-      resolve_collision(&collision, ta, ra, tb, rb);
+      ResolveCollision(&collision, ta, ra, tb, rb);
   }
 }

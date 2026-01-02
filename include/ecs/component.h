@@ -7,16 +7,11 @@
 #include <math.h>
 #include <stdint.h>
 
-#define VEC2ZERO (Vector2){0, 0}
-
 typedef struct {
   uint8_t active;
   uint8_t visible;
 } EntityData;
 #define ENTITYDATA_ACTIVE {1, 1}
-
-void entity_enable(Registry *r, Entity e, uint8_t active);
-void entity_visible(Registry *r, Entity e, uint8_t visible);
 
 typedef struct {
   Vector2 position;
@@ -45,9 +40,9 @@ typedef struct {
   void (*OnCollision)(CollisionEvent *event);
 } Collider;
 
-Collider collider_create(int vertices, float radius, uint8_t solid);
-#define collider_trigger(v, r) collider_create(v, r, 0)
-#define collider_solid(v, r) collider_create(v, r, 1)
+#define ColliderTrigger(v, r) ColliderCreate(v, r, 0)
+#define ColliderSolid(v, r) ColliderCreate(v, r, 1)
+Collider ColliderCreate(int vertices, float radius, uint8_t solid);
 
 typedef enum {
   RIGIDBODY_STATIC = 0,
@@ -74,9 +69,9 @@ typedef struct {
    {0, 0},                                                                     \
    {0, 0}}
 
-void rb_apply_force(RigidBody *rb, Vector2 force);
-void rb_apply_impulse(RigidBody *rb, Vector2 impulse);
-void rb_apply_damping(RigidBody *rb);
+void BodyApplyForce(RigidBody *rb, Vector2 force);
+void BodyApplyImpulse(RigidBody *rb, Vector2 impulse);
+void BodyApplyDamping(RigidBody *rb);
 
 typedef struct {
   Texture tex;
@@ -92,6 +87,6 @@ typedef struct {
 } Behaviour;
 #define BEHAVIOUR_EMPTY {0}
 
-void ecs_script(Registry *r, Entity e, Script s, EcsLayer ly);
+void EcsScript(ECS *ecs, Entity e, Script s, EcsLayer ly);
 
 #endif
