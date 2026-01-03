@@ -15,8 +15,11 @@ typedef struct {
 
 typedef struct {
   Vector2 position;
+  Vector2 localPosition;
   Vector2 scale;
+  Vector2 localScale;
   float rotation;
+  float localRotation;
 } Transform2;
 #define TRANSFORM_ZERO {{0, 0}, {1, 1}, 0}
 #define TRANSFORM_POS(x, y) {{x, y}, {1, 1}, 0}
@@ -37,7 +40,9 @@ typedef struct {
   uint8_t vertices;
   uint8_t overlap;
   uint8_t solid;
-  void (*OnCollision)(CollisionEvent *event);
+  void (*OnCollision)(CollisionEvent *event); // OnCollisionStay
+  // void (*OnCollisionEnter)(CollisionEvent *event);
+  // void (*OnCollisionExit)(CollisionEvent *event);
 } Collider;
 
 #define ColliderTrigger(v, r) ColliderCreate(v, r, 0)
@@ -82,11 +87,25 @@ typedef struct {
 typedef struct {
   Script OnEnable;
   Script OnDisable;
-  Script OnCollisionEnter;
   Script scripts[EcsSystemLayers];
 } Behaviour;
 #define BEHAVIOUR_EMPTY {0}
 
 void EcsScript(ECS *ecs, Entity e, Script s, EcsLayer ly);
+
+typedef struct {
+  Entity entity;
+} Parent;
+
+typedef struct {
+  Entity *list;
+  Entity count;     // use the maximum value of Entity as max length.
+  Entity allocated; // NEVER TOUCH THIS OR YOUR DEVICE WILL EXPLODE!!
+                    // ... please...
+} Children;
+
+void EntityAddParent(ECS *ecs, Entity e, Entity p);
+void EntityAddChild(ECS *ecs, Entity e, Entity c);
+void EntityRemoveChild(ECS *ecs, Entity e, Entity c);
 
 #endif

@@ -106,7 +106,6 @@ typedef enum {
   EcsAddSystem(ecs, script, layer, FOR_EACH(EcsSignature, (ecs), __VA_ARGS__))
 
 void EcsAddSystem(ECS *ecs, Script s, EcsLayer ly, Signature mask);
-uint8_t EcsCanRun(ECS *ecs, System *system, Entity e, EcsLayer ly);
 void EcsRun(ECS *ecs, EcsLayer ly);
 
 #endif
