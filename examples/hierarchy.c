@@ -34,7 +34,7 @@ int main(void) {
   EcsComponent(ecs, Transform2);
 
   EcsSystem(ecs, HierarchyTransform, 0, Transform2, Children);
-  EcsAddSystem(ecs, printHierarchy, 0, 0);
+  EcsSystemGlobal(ecs, printHierarchy, 0);
 
   Entity A = EcsEntity(ecs);
   Entity B = EcsEntity(ecs);

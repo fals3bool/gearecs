@@ -109,6 +109,8 @@ typedef enum {
 #define EcsSystem(ecs, script, layer, ...)                                     \
   EcsAddSystem(ecs, script, layer, FOR_EACH(EcsSignature, (ecs), __VA_ARGS__))
 
+#define EcsSystemGlobal(ecs, script, layer) EcsAddSystem(ecs, script, layer, 0);
+
 void EcsAddSystem(ECS *ecs, Script s, EcsLayer ly, Signature mask);
 void EcsRun(ECS *ecs, EcsLayer ly);
 
