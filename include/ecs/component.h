@@ -49,6 +49,7 @@ typedef struct {
 #define ColliderTrigger(v, r) ColliderCreate(v, r, 0)
 #define ColliderSolid(v, r) ColliderCreate(v, r, 1)
 Collider ColliderCreate(int vertices, float radius, uint8_t solid);
+void ColliderDestructor(void *self);
 
 typedef enum {
   RIGIDBODY_STATIC = 0,

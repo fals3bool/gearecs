@@ -19,3 +19,9 @@ Collider ColliderCreate(int vertices, float radius, uint8_t solid) {
   col.OnCollision = NULL;
   return col;
 }
+
+void ColliderDestructor(void *_self) {
+  Collider *self = (Collider *)_self;
+  free(self->md);
+  free(self->vx);
+}

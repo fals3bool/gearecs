@@ -11,6 +11,7 @@ typedef struct {
   char *name;
   void *list;
   size_t size;
+  void (*dtor)(void *);
 } ComponentList;
 
 typedef struct {
@@ -117,6 +118,7 @@ Component EcsRegisterComponent(ECS *ecs, char *name, size_t size) {
 
   ecs->components[id].name = name;
   ecs->components[id].size = size;
+  ecs->components[id].dtor = NULL;
   ecs->components[id].list = calloc(ecs->max_entities, size);
   return id;
 }
@@ -157,8 +159,14 @@ void EcsRemoveComponent(ECS *ecs, Entity e, Component id) {
     return;
   size_t size = ecs->components[id].size;
   void *dest = (uint8_t *)ecs->components[id].list + e * size;
+  if (ecs->components[id].dtor)
+    ecs->components[id].dtor(dest);
   memset(dest, 0, size);
   ecs->entities[e] &= ~(1u << id);
+}
+
+void EcsComponentDestructor(ECS *ecs, Component id, void (*_dtor)(void *)) {
+  ecs->components[id].dtor = _dtor;
 }
 
 uint8_t EcsHasComponent(ECS *ecs, Entity e, Signature mask) {

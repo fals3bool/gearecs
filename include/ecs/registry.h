@@ -60,6 +60,8 @@ void EcsRemoveComponent(ECS *ecs, Entity e, Component id);
 void *EcsGetComponent(ECS *ecs, Entity e, Component id);
 void *EcsGetComponentOptional(ECS *ecs, Entity e, Component id);
 
+void EcsComponentDestructor(ECS *ecs, Component id, void (*_dtor)(void *));
+
 uint8_t EcsHasComponent(ECS *ecs, Entity e, Signature mask);
 Component EcsCID(ECS *ecs, char *name);
 

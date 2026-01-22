@@ -35,13 +35,14 @@ uint8_t EntitySetChild(ECS *ecs, Entity e, Entity c) {
     Entity i = children->count++;
     if (children->count > children->allocated) {
       children->allocated = children->allocated ? children->allocated * 2 : 4;
+      children->list =
+          realloc(children->list, sizeof(Entity) * children->allocated);
     }
-    children->list = realloc(children->list, sizeof(Entity) * children->count);
     children->list[i] = c;
   } else {
     Entity *list = malloc(sizeof(Entity));
     list[0] = c;
-    EcsAdd(ecs, e, Children, {list, 1});
+    EcsAdd(ecs, e, Children, {list, 1, 1});
   }
 
   EntitySetActive(ecs, c, EntityIsActive(ecs, e));

@@ -1,3 +1,4 @@
+#include "ecs/registry.h"
 #include <scene/manager.h>
 
 #include <stdlib.h>
@@ -22,7 +23,8 @@ GameScene SceneStart(uint16_t max_entities, Camera2D camera) {
   EcsComponent(ecs, Camera2D);
   EcsComponent(ecs, Sprite);
   EcsComponent(ecs, Behaviour);
-  EcsComponent(ecs, Collider);
+  Component collider_id = EcsComponent(ecs, Collider);
+  EcsComponentDestructor(ecs, collider_id, ColliderDestructor);
   EcsComponent(ecs, RigidBody);
 
   Entity camEntity = EcsEntity(ecs);
