@@ -34,23 +34,22 @@ uint8_t EntityIsVisible(ECS *ecs, Entity e);
 //  COMPONENT  //
 // ########### //
 
-#define EcsComponent(registry, C)                                              \
-  Component C##_ = EcsRegisterComponent(registry, #C, sizeof(C))
+#define EcsComponent(ecs, C) EcsRegisterComponent(ecs, #C, sizeof(C))
 
-#define EcsAdd(registry, entity, C, ...)                                       \
-  EcsAddComponent(registry, entity, EcsCID(registry, #C), &(C)__VA_ARGS__)
+#define EcsAdd(ecs, entity, C, ...)                                            \
+  EcsAddComponent(ecs, entity, EcsCID(ecs, #C), &(C)__VA_ARGS__)
 
-#define EcsAddLocal(registry, entity, C, ...)                                  \
-  EcsAddComponent(registry, entity, C##_, &(C)__VA_ARGS__)
+#define EcsAddLocal(ecs, entity, C, ...)                                       \
+  EcsAddComponent(ecs, entity, C##_, &(C)__VA_ARGS__)
 
-#define EcsAddExt(registry, entity, C, ...)                                    \
-  EcsAddComponent(registry, entity, EcsCID(registry, #C), &__VA_ARGS__)
+#define EcsAddExt(ecs, entity, C, ...)                                         \
+  EcsAddComponent(ecs, entity, EcsCID(ecs, #C), &__VA_ARGS__)
 
-#define EcsGet(registry, entity, C)                                            \
-  (C *)EcsGetComponent(registry, entity, EcsCID(registry, #C))
+#define EcsGet(ecs, entity, C)                                                 \
+  (C *)EcsGetComponent(ecs, entity, EcsCID(ecs, #C))
 
-#define EcsGetOptional(registry, entity, C)                                    \
-  (C *)EcsGetComponentOptional(registry, entity, EcsCID(registry, #C))
+#define EcsGetOptional(ecs, entity, C)                                         \
+  (C *)EcsGetComponentOptional(ecs, entity, EcsCID(ecs, #C))
 
 #define EcsRemove(ecs, entity, C)                                              \
   EcsRemoveComponent(ecs, entity, EcsCID(ecs, #C))
@@ -80,34 +79,11 @@ typedef enum {
   EcsSystemLayers
 } EcsLayer;
 
-#define GET_MACRO(_1, _2, _3, _4, NAME, ...) NAME
-
-#define EcsSignatureLocal(C) (1ULL << C##_)
-#define EcsSignature(ecs, C) (1ULL << EcsCID((ecs), #C))
-
-#define FOR_EACH_l1(m, x) m(x)
-#define FOR_EACH_l2(m, x, ...) m(x) | FOR_EACH_l1(m, __VA_ARGS__)
-#define FOR_EACH_l3(m, x, ...) m(x) | FOR_EACH_l2(m, __VA_ARGS__)
-#define FOR_EACH_l4(m, x, ...) m(x) | FOR_EACH_l3(m, __VA_ARGS__)
-
-#define FOR_EACH_1(m, ecs, x) m(ecs, x)
-#define FOR_EACH_2(m, ecs, x, ...) m(ecs, x) | FOR_EACH_1(m, ecs, __VA_ARGS__)
-#define FOR_EACH_3(m, ecs, x, ...) m(ecs, x) | FOR_EACH_2(m, ecs, __VA_ARGS__)
-#define FOR_EACH_4(m, ecs, x, ...) m(ecs, x) | FOR_EACH_3(m, ecs, __VA_ARGS__)
-
-#define FOR_EACH_l(m, ...)                                                     \
-  GET_MACRO(__VA_ARGS__, FOR_EACH_l4, FOR_EACH_l3, FOR_EACH_l2,                \
-            FOR_EACH_l1)(m, __VA_ARGS__)
-
-#define FOR_EACH(m, ecs, ...)                                                  \
-  GET_MACRO(__VA_ARGS__, FOR_EACH_4, FOR_EACH_3, FOR_EACH_2,                   \
-            FOR_EACH_1)(m, ecs, __VA_ARGS__)
-
-#define EcsSystemLocal(ecs, script, layer, ...)                                \
-  EcsAddSystem(ecs, script, layer, FOR_EACH_l(EcsSignatureLocal, __VA_ARGS__))
+#define EcsSignature(ecs, ...) EcsSignatureImpl(ecs, #__VA_ARGS__)
+Signature EcsSignatureImpl(ECS *ecs, const char *str);
 
 #define EcsSystem(ecs, script, layer, ...)                                     \
-  EcsAddSystem(ecs, script, layer, FOR_EACH(EcsSignature, (ecs), __VA_ARGS__))
+  EcsAddSystem(ecs, script, layer, EcsSignature(ecs, __VA_ARGS__))
 
 #define EcsSystemGlobal(ecs, script, layer) EcsAddSystem(ecs, script, layer, 0);
 

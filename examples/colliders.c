@@ -38,7 +38,6 @@ void ScriptMove(ECS *ecs, Entity self) {
 }
 
 void ScriptImpulse(ECS *ecs, Entity self) {
-  Transform2 *t = EcsGet(ecs, self, Transform2);
   RigidBody *rb = EcsGet(ecs, self, RigidBody);
 
   Vector2 d = {0};

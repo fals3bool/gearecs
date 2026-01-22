@@ -1,7 +1,9 @@
 # :)
 .cache/
 build/
-webbuild/
+web-build/
+win-build/
+toolchain-mingw64.cmake
 
 
 ## GENERATED ##

@@ -1,6 +1,9 @@
 #include <ecs/registry.h>
 
 #include <assert.h>
+#include <ctype.h>
+#include <stdarg.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -128,34 +131,34 @@ void EcsFreeComponents(ECS *ecs) {
 void EcsAddComponent(ECS *ecs, Entity e, Component id, void *data) {
   assert(id < ecs->comp_count && "Component does not exist!");
   size_t size = ecs->components[id].size;
-  void *dest = ecs->components[id].list + e * size;
+  void *dest = (uint8_t *)ecs->components[id].list + e * size;
   memcpy(dest, data, size);
-  ecs->entities[e] |= (1 << id);
+  ecs->entities[e] |= (1u << id);
 }
 
 void *EcsGetComponent(ECS *ecs, Entity e, Component id) {
   assert(id < ecs->comp_count && "Component does not exist!");
-  assert(EcsHasComponent(ecs, e, (1 << id)) &&
+  assert(EcsHasComponent(ecs, e, (1u << id)) &&
          "Entity does not have the requiered component!");
-  return ecs->components[id].list + e * ecs->components[id].size;
+  return (uint8_t *)ecs->components[id].list + e * ecs->components[id].size;
 }
 
 void *EcsGetComponentOptional(ECS *ecs, Entity e, Component id) {
-  if(id >= ecs->comp_count)
+  if (id >= ecs->comp_count)
     return NULL;
-  if (!EcsHasComponent(ecs, e, (1 << id)))
+  if (!EcsHasComponent(ecs, e, (1u << id)))
     return NULL;
-  return ecs->components[id].list + e * ecs->components[id].size;
+  return (uint8_t *)ecs->components[id].list + e * ecs->components[id].size;
 }
 
 void EcsRemoveComponent(ECS *ecs, Entity e, Component id) {
   assert(id < ecs->comp_count && "Component does not exist!");
-  if (!EcsHasComponent(ecs, e, (1 << id)))
+  if (!EcsHasComponent(ecs, e, (1u << id)))
     return;
   size_t size = ecs->components[id].size;
-  void *dest = ecs->components[id].list + e * size;
+  void *dest = (uint8_t *)ecs->components[id].list + e * size;
   memset(dest, 0, size);
-  ecs->entities[e] &= ~(1 << id);
+  ecs->entities[e] &= ~(1u << id);
 }
 
 uint8_t EcsHasComponent(ECS *ecs, Entity e, Signature mask) {
@@ -168,6 +171,45 @@ Component EcsCID(ECS *ecs, char *name) {
       return id;
   }
   return ecs->comp_count;
+}
+
+// ########### //
+//  SIGNATURE  //
+// ########### //
+
+size_t split(char *str, char **out, size_t max) {
+  size_t count = 0;
+  char *tok = strtok(str, ",");
+
+  while (tok && count < max) {
+    while (isspace((unsigned char)*tok))
+      tok++;
+
+    char *end = tok + strlen(tok) - 1;
+    while (end > tok && isspace((unsigned char)*end)) {
+      *end-- = '\0';
+    }
+
+    out[count++] = tok;
+    tok = strtok(NULL, ",");
+  }
+
+  return count;
+}
+
+Signature EcsSignatureImpl(ECS *ecs, const char *str) {
+  Signature mask = 0;
+
+  char buffer[256];
+  strncpy(buffer, str, sizeof(buffer));
+  buffer[sizeof(buffer) - 1] = '\0';
+
+  char *components[8];
+  size_t n = split(buffer, components, 8);
+  for (size_t i = 0; i < n; i++) {
+    mask |= (1ULL << EcsCID(ecs, components[i]));
+  }
+  return mask;
 }
 
 // ######### //

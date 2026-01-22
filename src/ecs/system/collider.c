@@ -28,8 +28,8 @@ void DebugColliderSystem(ECS *ecs, Entity e) {
 
 // COLLISIONS
 
-static uint8_t SatProj(Transform2 *ta, Collider *ca, Transform2 *tb,
-                       Collider *cb, float *min_distance, Vector2 *axis) {
+static uint8_t SatProj(Collider *ca, Collider *cb, float *min_distance,
+                       Vector2 *axis) {
   for (uint8_t i = 0; i < ca->vertices; i++) {
     uint8_t j = (i + 1) % ca->vertices;
 
@@ -67,10 +67,10 @@ uint8_t CollisionSat(Transform2 *ta, Collider *ca, Transform2 *tb, Collider *cb,
   float distance = INFINITY;
   Vector2 proj = {0, 0};
 
-  if (!SatProj(ta, ca, tb, cb, &distance, &proj))
+  if (!SatProj(ca, cb, &distance, &proj))
     return false;
 
-  if (!SatProj(tb, cb, ta, ca, &distance, &proj))
+  if (!SatProj(cb, ca, &distance, &proj))
     return false;
 
   Vector2 delta = {tb->position.x - ta->position.x,

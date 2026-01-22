@@ -1,4 +1,3 @@
-#include "ecs/system.h"
 #include <scene/manager.h>
 
 #include <stdlib.h>
@@ -17,6 +16,8 @@ GameScene SceneStart(uint16_t max_entities, Camera2D camera) {
   ECS *ecs = EcsRegistry(max_entities);
 
   EcsComponent(ecs, EntityData);
+  EcsComponent(ecs, Parent);
+  EcsComponent(ecs, Children);
   EcsComponent(ecs, Transform2);
   EcsComponent(ecs, Camera2D);
   EcsComponent(ecs, Sprite);

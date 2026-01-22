@@ -102,7 +102,6 @@ typedef struct {
   Entity *list;
   Entity count;     // use the maximum value of Entity as max length.
   Entity allocated; // NEVER TOUCH THIS OR YOUR DEVICE WILL EXPLODE!!
-                    // ... please...
 } Children;
 
 void EntityAddParent(ECS *ecs, Entity e, Entity p);
