@@ -1,7 +1,7 @@
 #ifndef GEARECS_SCENE
 #define GEARECS_SCENE
 
-#include <gearecs/gameobject.h>
+#include <falsecs/gameobject.h>
 #include <ecs/system.h>
 
 typedef struct {
