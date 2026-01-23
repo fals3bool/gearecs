@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 uint8_t EntitySetParent(ECS *ecs, Entity e, Entity p) {
-  Parent *old = EcsGetOptional(ecs, e, Parent);
+  Parent *old = GetComponentOptional(ecs, e, Parent);
   if (old && old->entity == p)
     return false;
 
@@ -11,21 +11,21 @@ uint8_t EntitySetParent(ECS *ecs, Entity e, Entity p) {
     EntityRemoveChild(ecs, old->entity, e);
     old->entity = p;
   } else {
-    EcsAdd(ecs, e, Parent, {p});
+    AddComponent(ecs, e, Parent, {p});
   }
   return true;
 }
 
 uint8_t EntitySetChild(ECS *ecs, Entity e, Entity c) {
   // E child of C child of E -> loop! (recursively)
-  Parent *parent = EcsGetOptional(ecs, e, Parent);
+  Parent *parent = GetComponentOptional(ecs, e, Parent);
   while (parent) {
     if (parent->entity == c)
       return false;
-    parent = EcsGetOptional(ecs, parent->entity, Parent);
+    parent = GetComponentOptional(ecs, parent->entity, Parent);
   }
 
-  Children *children = EcsGetOptional(ecs, e, Children);
+  Children *children = GetComponentOptional(ecs, e, Children);
   if (children) {
     // Was already added?
     for (Entity i = 0; i < children->count; i++)
@@ -42,7 +42,7 @@ uint8_t EntitySetChild(ECS *ecs, Entity e, Entity c) {
   } else {
     Entity *list = malloc(sizeof(Entity));
     list[0] = c;
-    EcsAdd(ecs, e, Children, {list, 1, 1});
+    AddComponent(ecs, e, Children, {list, 1, 1});
   }
 
   EntitySetActive(ecs, c, EntityIsActive(ecs, e));
@@ -62,7 +62,7 @@ void EntityAddChild(ECS *ecs, Entity e, Entity c) {
 }
 
 void EntityRemoveChild(ECS *ecs, Entity e, Entity c) {
-  Children *children = EcsGetOptional(ecs, e, Children);
+  Children *children = GetComponentOptional(ecs, e, Children);
   if (!children || children->count <= 0)
     return;
   // replaced by last one
@@ -74,23 +74,23 @@ void EntityRemoveChild(ECS *ecs, Entity e, Entity c) {
   }
 
   if (children->count == 0)
-    EcsRemove(ecs, e, Children);
+    RemoveComponent(ecs, e, Children);
 }
 
 void EntityRemoveParent(ECS *ecs, Entity e) {
-  Parent *parent = EcsGetOptional(ecs, e, Parent);
+  Parent *parent = GetComponentOptional(ecs, e, Parent);
   if (!parent)
     return;
   EntityRemoveChild(ecs, e, parent->entity);
-  EcsRemove(ecs, e, Parent);
+  RemoveComponent(ecs, e, Parent);
 }
 
 void EntityDestroy(ECS *ecs, Entity e) {
-  Parent *parent = EcsGetOptional(ecs, e, Parent);
+  Parent *parent = GetComponentOptional(ecs, e, Parent);
   if (parent)
     EntityRemoveChild(ecs, parent->entity, e);
 
-  Children *children = EcsGetOptional(ecs, e, Children);
+  Children *children = GetComponentOptional(ecs, e, Children);
   if (children)
     for (Entity i = 0; i < children->count; i++)
       EntityRemoveParent(ecs, children->list[i]);
@@ -99,11 +99,11 @@ void EntityDestroy(ECS *ecs, Entity e) {
 }
 
 void EntityDestroyRecursive(ECS *ecs, Entity e) {
-  Parent *parent = EcsGetOptional(ecs, e, Parent);
+  Parent *parent = GetComponentOptional(ecs, e, Parent);
   if (parent)
     EntityRemoveChild(ecs, parent->entity, e);
 
-  Children *children = EcsGetOptional(ecs, e, Children);
+  Children *children = GetComponentOptional(ecs, e, Children);
   if (children)
     for (Entity i = 0; i < children->count; i++)
       EntityDestroyRecursive(ecs, children->list[i]);
@@ -112,7 +112,7 @@ void EntityDestroyRecursive(ECS *ecs, Entity e) {
 }
 
 void EntityForEachChild(ECS *ecs, Entity e, Script s) {
-  Children *children = EcsGetOptional(ecs, e, Children);
+  Children *children = GetComponentOptional(ecs, e, Children);
   if (!children)
     return;
   for (Entity i = 0; i < children->count; i++)
@@ -120,7 +120,7 @@ void EntityForEachChild(ECS *ecs, Entity e, Script s) {
 }
 
 void EntityForEachChildRecursive(ECS *ecs, Entity e, Script s) {
-  Children *children = EcsGetOptional(ecs, e, Children);
+  Children *children = GetComponentOptional(ecs, e, Children);
   if (!children)
     return;
   for (Entity i = 0; i < children->count; i++) {

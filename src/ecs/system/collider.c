@@ -4,8 +4,8 @@
 #include <raymath.h>
 
 void TransformColliderSystem(ECS *ecs, Entity e) {
-  Transform2 *t = EcsGet(ecs, e, Transform2);
-  Collider *c = EcsGet(ecs, e, Collider);
+  Transform2 *t = GetComponent(ecs, e, Transform2);
+  Collider *c = GetComponent(ecs, e, Collider);
 
   float angle = t->rotation;
   for (uint8_t i = 0; i < c->vertices; i++) {
@@ -18,7 +18,7 @@ void TransformColliderSystem(ECS *ecs, Entity e) {
 }
 
 void DebugColliderSystem(ECS *ecs, Entity e) {
-  Collider *col = EcsGet(ecs, e, Collider);
+  Collider *col = GetComponent(ecs, e, Collider);
   for (uint8_t i = 0; i < col->vertices; i++) {
     Vector2 p = col->vx[i];
     Vector2 q = col->vx[(i + 1) % col->vertices];
@@ -115,9 +115,9 @@ void ResolveCollision(Collision *input, Transform2 *ta, RigidBody *ra,
 }
 
 void CollisionSystem(ECS *ecs, Entity self) {
-  Transform2 *ta = EcsGet(ecs, self, Transform2);
-  Collider *ca = EcsGet(ecs, self, Collider);
-  RigidBody *ra = EcsGet(ecs, self, RigidBody);
+  Transform2 *ta = GetComponent(ecs, self, Transform2);
+  Collider *ca = GetComponent(ecs, self, Collider);
+  RigidBody *ra = GetComponent(ecs, self, RigidBody);
 
   Signature mask = EcsSignature(ecs, Transform2) & EcsSignature(ecs, Collider);
   for (Entity other = self + 1; other < EcsEntityCount(ecs); ++other) {
@@ -125,9 +125,9 @@ void CollisionSystem(ECS *ecs, Entity self) {
       continue;
     if (!EntityIsActive(ecs, other))
       continue;
-    Transform2 *tb = EcsGet(ecs, other, Transform2);
-    Collider *cb = EcsGet(ecs, other, Collider);
-    RigidBody *rb = EcsGet(ecs, other, RigidBody);
+    Transform2 *tb = GetComponent(ecs, other, Transform2);
+    Collider *cb = GetComponent(ecs, other, Collider);
+    RigidBody *rb = GetComponent(ecs, other, RigidBody);
 
     Collision collision;
     uint8_t overlap = CollisionSat(ta, ca, tb, cb, &collision);

@@ -2,7 +2,7 @@
 #include <ecs/system.h>
 
 void bsy(ECS *ecs, Entity e, EcsLayer ly) {
-  Behaviour *beh = EcsGet(ecs, e, Behaviour);
+  Behaviour *beh = GetComponent(ecs, e, Behaviour);
   if (beh->scripts[ly])
     beh->scripts[ly](ecs, e);
 }

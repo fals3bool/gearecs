@@ -1,3 +1,4 @@
+#include "ecs/registry.h"
 #include <ecs/component.h>
 #include <ecs/system.h>
 
@@ -6,8 +7,8 @@
 void printTree(ECS *ecs, Entity e) { printf("^\n[%d]\n", e); }
 
 void printHierarchy(ECS *ecs, Entity e) {
-  Parent *parent = EcsGetOptional(ecs, e, Parent);
-  Children *children = EcsGetOptional(ecs, e, Children);
+  Parent *parent = GetComponentOptional(ecs, e, Parent);
+  Children *children = GetComponentOptional(ecs, e, Children);
   printf("Hierarchy Relations of [Entity: %d] {%s}\n", e,
          EntityIsActive(ecs, e) ? "ACTIVE" : "NOT ACTIVE");
   if (parent)
@@ -18,7 +19,7 @@ void printHierarchy(ECS *ecs, Entity e) {
       printf(" -> %d\n", children->list[e]);
   }
 
-  Transform2 *t = EcsGetOptional(ecs, e, Transform2);
+  Transform2 *t = GetComponentOptional(ecs, e, Transform2);
   if (t)
     printf("Position: {%.2f, %.2f}\n", t->position.x, t->position.y);
 
@@ -28,23 +29,23 @@ void printHierarchy(ECS *ecs, Entity e) {
 int main(void) {
 
   ECS *ecs = EcsRegistry(32);
-  EcsComponent(ecs, Parent);
-  EcsComponent(ecs, Children);
-  EcsComponent(ecs, EntityData);
-  EcsComponent(ecs, Transform2);
+  Component(ecs, Parent);
+  Component(ecs, Children);
+  Component(ecs, EntityData);
+  Component(ecs, Transform2);
 
-  EcsSystem(ecs, HierarchyTransform, 0, Transform2, Children);
-  EcsSystemGlobal(ecs, printHierarchy, 0);
+  System(ecs, HierarchyTransform, 0, Transform2, Children);
+  SystemGlobal(ecs, printHierarchy, 0);
 
   Entity A = EcsEntity(ecs);
   Entity B = EcsEntity(ecs);
   Entity C = EcsEntity(ecs);
 
-  EcsAdd(ecs, A, EntityData, ENTITYDATA_ACTIVE);
-  EcsAdd(ecs, B, EntityData, ENTITYDATA_ACTIVE);
+  AddComponent(ecs, A, EntityData, ENTITYDATA_ACTIVE);
+  AddComponent(ecs, B, EntityData, ENTITYDATA_ACTIVE);
 
-  EcsAdd(ecs, A, Transform2, TRANSFORM_LOCALPOS(20, 30));
-  EcsAdd(ecs, C, Transform2, TRANSFORM_POS(20, 30));
+  AddComponent(ecs, A, Transform2, TRANSFORM_LOCALPOS(20, 30));
+  AddComponent(ecs, C, Transform2, TRANSFORM_POS(20, 30));
 
   EntityAddChild(ecs, B, A);
   EntityAddChild(ecs, B, C);
@@ -67,7 +68,7 @@ int main(void) {
   // Deactivated entities won't be read by systems
   EntitySetActive(ecs, B, true); // All entities are now active
 
-  EcsRun(ecs, 0);
+  RunSystem(ecs, 0);
 
   printf("for each:\n");
   EntityForEachChild(ecs, B, printTree);
@@ -78,7 +79,7 @@ int main(void) {
   EntityDestroy(ecs, B); // destroy B, remove parent from C
   // EntityDestroyRecursive(ecs, C); // destroy C and children...
 
-  EcsRun(ecs, 0);
+  RunSystem(ecs, 0);
 
   return 0;
 }

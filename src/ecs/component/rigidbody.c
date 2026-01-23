@@ -11,7 +11,7 @@ void BodyApplyImpulse(RigidBody *rb, Vector2 impulse) {
 }
 
 void BodyApplyDamping(RigidBody *rb) {
-  float fac = expf(-rb->damping * ECS_FIXED_DELTATIME);
+  float fac = expf(-rb->damping * FIXED_DELTATIME);
   rb->speed.x *= fac;
   rb->speed.y *= fac;
 }

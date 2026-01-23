@@ -93,7 +93,7 @@ typedef struct {
 } Behaviour;
 #define BEHAVIOUR_EMPTY {0}
 
-void EcsScript(ECS *ecs, Entity e, Script s, EcsLayer ly);
+void AddScript(ECS *ecs, Entity e, Script s, EcsLayer ly);
 
 typedef struct {
   Entity entity;

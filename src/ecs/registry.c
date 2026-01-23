@@ -19,7 +19,7 @@ typedef struct {
   size_t size;
 } LayerSystems;
 
-struct ECS {
+struct Registry {
   Entity max_entities;
   Signature *entities;
   Entity entity_count;
@@ -255,7 +255,7 @@ uint8_t EcsCanRun(ECS *ecs, System *system, Entity e, EcsLayer ly) {
     return EntityIsVisible(ecs, e);
 }
 
-void EcsRun(ECS *ecs, EcsLayer ly) {
+void RunSystem(ECS *ecs, EcsLayer ly) {
   size_t len = ecs->systems[ly].size;
   for (size_t s = 0; s < len; s++) {
     for (Entity e = 0; e < ecs->entity_count; e++) {

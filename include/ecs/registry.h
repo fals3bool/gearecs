@@ -4,10 +4,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
-typedef struct ECS ECS;
-typedef uint16_t Entity;
-typedef uint16_t Signature;
-typedef uint16_t Component;
+typedef struct Registry ECS;
+typedef uint16_t EcsID;
+typedef EcsID Entity;
+typedef EcsID Component;
+typedef uint64_t Signature;
 typedef void (*Script)(ECS *, Entity);
 typedef struct {
   Script run;
@@ -34,25 +35,30 @@ uint8_t EntityIsVisible(ECS *ecs, Entity e);
 //  COMPONENT  //
 // ########### //
 
-#define EcsComponent(ecs, C) EcsRegisterComponent(ecs, #C, sizeof(C))
+#define Component(ecs, C) EcsRegisterComponent(ecs, #C, sizeof(C))
 
-#define EcsAdd(ecs, entity, C, ...)                                            \
+#define ComponentDtor(ecs, C, dtor)                                            \
+  EcsComponentDestructor(ecs, EcsCID(ecs, #C), dtor);
+
+#define AddComponent(ecs, entity, C, ...)                                      \
   EcsAddComponent(ecs, entity, EcsCID(ecs, #C), &(C)__VA_ARGS__)
 
-#define EcsAddLocal(ecs, entity, C, ...)                                       \
+#define AddComponentLocal(ecs, entity, C, ...)                                 \
   EcsAddComponent(ecs, entity, C##_, &(C)__VA_ARGS__)
 
-#define EcsAddExt(ecs, entity, C, ...)                                         \
+#define AddComponentEx(ecs, entity, C, ...)                                    \
   EcsAddComponent(ecs, entity, EcsCID(ecs, #C), &__VA_ARGS__)
 
-#define EcsGet(ecs, entity, C)                                                 \
+#define GetComponent(ecs, entity, C)                                           \
   (C *)EcsGetComponent(ecs, entity, EcsCID(ecs, #C))
 
-#define EcsGetOptional(ecs, entity, C)                                         \
+#define GetComponentOptional(ecs, entity, C)                                   \
   (C *)EcsGetComponentOptional(ecs, entity, EcsCID(ecs, #C))
 
-#define EcsRemove(ecs, entity, C)                                              \
+#define RemoveComponent(ecs, entity, C)                                        \
   EcsRemoveComponent(ecs, entity, EcsCID(ecs, #C))
+
+#define ComponentID(ecs, C) EcsCID(ecs, #C)
 
 Component EcsRegisterComponent(ECS *ecs, char *name, size_t size);
 void EcsAddComponent(ECS *ecs, Entity e, Component id, void *data);
@@ -69,7 +75,7 @@ Component EcsCID(ECS *ecs, char *name);
 //  SYSTEMS  //
 // ######### //
 
-#define ECS_FIXED_DELTATIME 1.f / 60.f
+#define FIXED_DELTATIME 1.f / 60.f
 
 typedef enum {
   EcsOnStart = 0,
@@ -84,12 +90,12 @@ typedef enum {
 #define EcsSignature(ecs, ...) EcsSignatureImpl(ecs, #__VA_ARGS__)
 Signature EcsSignatureImpl(ECS *ecs, const char *str);
 
-#define EcsSystem(ecs, script, layer, ...)                                     \
+#define System(ecs, script, layer, ...)                                        \
   EcsAddSystem(ecs, script, layer, EcsSignature(ecs, __VA_ARGS__))
 
-#define EcsSystemGlobal(ecs, script, layer) EcsAddSystem(ecs, script, layer, 0);
+#define SystemGlobal(ecs, script, layer) EcsAddSystem(ecs, script, layer, 0);
 
 void EcsAddSystem(ECS *ecs, Script s, EcsLayer ly, Signature mask);
-void EcsRun(ECS *ecs, EcsLayer ly);
+void RunSystem(ECS *ecs, EcsLayer ly);
 
 #endif

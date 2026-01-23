@@ -2,8 +2,8 @@
 #include <ecs/system.h>
 
 void SpriteSystem(ECS *ecs, Entity e) {
-  Transform2 *t = EcsGet(ecs, e, Transform2);
-  Sprite *sp = EcsGet(ecs, e, Sprite);
+  Transform2 *t = GetComponent(ecs, e, Transform2);
+  Sprite *sp = GetComponent(ecs, e, Sprite);
 
   float tw = sp->src.width * t->scale.x;
   float th = sp->src.height * t->scale.y;

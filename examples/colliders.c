@@ -7,10 +7,10 @@
 #define SCREEN_H 450
 
 void ScriptMove(ECS *ecs, Entity self) {
-  Transform2 *t = EcsGet(ecs, self, Transform2);
-  RigidBody *rb = EcsGet(ecs, self, RigidBody);
+  Transform2 *t = GetComponent(ecs, self, Transform2);
+  RigidBody *rb = GetComponent(ecs, self, RigidBody);
 
-  Camera2D *cam = EcsGet(ecs, 0, Camera2D);
+  Camera2D *cam = GetComponent(ecs, 0, Camera2D);
   Vector2 mu = GetScreenToWorld2D(GetMousePosition(), *cam);
   Vector2 md = {mu.x - t->position.x, mu.y - t->position.y};
   t->rotation = atan2f(md.y, md.x);
@@ -38,7 +38,7 @@ void ScriptMove(ECS *ecs, Entity self) {
 }
 
 void ScriptImpulse(ECS *ecs, Entity self) {
-  RigidBody *rb = EcsGet(ecs, self, RigidBody);
+  RigidBody *rb = GetComponent(ecs, self, RigidBody);
 
   Vector2 d = {0};
   if (IsKeyDown(KEY_W))
@@ -60,9 +60,9 @@ void ScriptGui(ECS *ecs, Entity self) {
 }
 
 void ScriptShowData(ECS *ecs, Entity self) {
-  Transform2 *t = EcsGet(ecs, self, Transform2);
-  RigidBody *rb = EcsGet(ecs, self, RigidBody);
-  Collider *c = EcsGet(ecs, self, Collider);
+  Transform2 *t = GetComponent(ecs, self, Transform2);
+  RigidBody *rb = GetComponent(ecs, self, RigidBody);
+  Collider *c = GetComponent(ecs, self, Collider);
 
   int fontsize = 12;
   char coltxt[20];
@@ -94,69 +94,69 @@ void LoadScene(ECS *ecs) {
   // COLLIDER: [SOLID]
   // BODY: [NONE]
   Entity A = EcsEntity(ecs);
-  EcsAdd(ecs, A, Transform2, TRANSFORM_POS(-250, 100));
+  AddComponent(ecs, A, Transform2, TRANSFORM_POS(-250, 100));
   Collider colA = ColliderSolid(5, 16);
   colA.OnCollision = EventOnCollision;
-  EcsAddExt(ecs, A, Collider, colA);
-  EcsAdd(ecs, A, Behaviour, BEHAVIOUR_EMPTY);
-  EcsScript(ecs, A, ScriptShowData, EcsOnRender);
+  AddComponentEx(ecs, A, Collider, colA);
+  AddComponent(ecs, A, Behaviour, BEHAVIOUR_EMPTY);
+  AddScript(ecs, A, ScriptShowData, EcsOnRender);
 
   // COLLIDER: [TRIGGER]
   // BODY: [NONE]
   Entity B = EcsEntity(ecs);
-  EcsAdd(ecs, B, Transform2, TRANSFORM_POS(-150, -100));
+  AddComponent(ecs, B, Transform2, TRANSFORM_POS(-150, -100));
   Collider colB = ColliderTrigger(4, 20);
   colB.OnCollision = EventOnCollision;
-  EcsAddExt(ecs, B, Collider, colB);
-  EcsAdd(ecs, B, Behaviour, BEHAVIOUR_EMPTY);
-  EcsScript(ecs, B, ScriptShowData, EcsOnRender);
+  AddComponentEx(ecs, B, Collider, colB);
+  AddComponent(ecs, B, Behaviour, BEHAVIOUR_EMPTY);
+  AddScript(ecs, B, ScriptShowData, EcsOnRender);
 
   // COLLIDER: [SOLID]
   // BODY: [DYNAMIC]
   Entity C = EcsEntity(ecs);
-  EcsAdd(ecs, C, Transform2, TRANSFORM_POS(0, 100));
+  AddComponent(ecs, C, Transform2, TRANSFORM_POS(0, 100));
   Collider colC = ColliderSolid(6, 18);
-  EcsAddExt(ecs, C, Collider, colC);
+  AddComponentEx(ecs, C, Collider, colC);
   RigidBody rbC = rigidbody_create(80, 1.2f, RIGIDBODY_DYNAMIC);
   rbC.gravity = false;
-  EcsAddExt(ecs, C, RigidBody, rbC);
-  EcsAdd(ecs, C, Behaviour, BEHAVIOUR_EMPTY);
-  EcsScript(ecs, C, ScriptShowData, EcsOnRender);
+  AddComponentEx(ecs, C, RigidBody, rbC);
+  AddComponent(ecs, C, Behaviour, BEHAVIOUR_EMPTY);
+  AddScript(ecs, C, ScriptShowData, EcsOnRender);
 
   // COLLIDER: [SOLID]
   // BODY: [STATIC]
   Entity D = EcsEntity(ecs);
-  EcsAdd(ecs, D, Transform2, TRANSFORM_POS(150, -100));
+  AddComponent(ecs, D, Transform2, TRANSFORM_POS(150, -100));
   Collider colD = ColliderSolid(7, 24);
-  EcsAddExt(ecs, D, Collider, colD);
-  EcsAdd(ecs, D, RigidBody, rigidbody_create(50, 1, RIGIDBODY_STATIC));
-  EcsAdd(ecs, D, Behaviour, BEHAVIOUR_EMPTY);
-  EcsScript(ecs, D, ScriptShowData, EcsOnRender);
+  AddComponentEx(ecs, D, Collider, colD);
+  AddComponent(ecs, D, RigidBody, rigidbody_create(50, 1, RIGIDBODY_STATIC));
+  AddComponent(ecs, D, Behaviour, BEHAVIOUR_EMPTY);
+  AddScript(ecs, D, ScriptShowData, EcsOnRender);
 
   // COLLIDER: [SOLID]
   // BODY: [KINEMATIC]
   Entity E = EcsEntity(ecs);
-  EcsAdd(ecs, E, Transform2, TRANSFORM_POS(250, 100));
+  AddComponent(ecs, E, Transform2, TRANSFORM_POS(250, 100));
   Collider colE = ColliderSolid(4, 24);
-  EcsAddExt(ecs, E, Collider, colE);
-  EcsAdd(ecs, E, RigidBody, rigidbody_create(30, 1, RIGIDBODY_KINEMATIC));
-  EcsAdd(ecs, E, Behaviour, BEHAVIOUR_EMPTY);
-  EcsScript(ecs, E, ScriptShowData, EcsOnRender);
+  AddComponentEx(ecs, E, Collider, colE);
+  AddComponent(ecs, E, RigidBody, rigidbody_create(30, 1, RIGIDBODY_KINEMATIC));
+  AddComponent(ecs, E, Behaviour, BEHAVIOUR_EMPTY);
+  AddScript(ecs, E, ScriptShowData, EcsOnRender);
 
   // PLAYER
   Entity P = EcsEntity(ecs);
-  EcsAdd(ecs, P, Transform2, TRANSFORM_ZERO);
+  AddComponent(ecs, P, Transform2, TRANSFORM_ZERO);
   Collider colP = ColliderSolid(3, 22);
   colP.OnCollision = EventOnCollision;
-  EcsAddExt(ecs, P, Collider, colP);
-  EcsAdd(ecs, P, Behaviour, BEHAVIOUR_EMPTY);
-  EcsAdd(ecs, P, RigidBody, rigidbody_create(50, 1.5f, RIGIDBODY_STATIC));
-  EcsScript(ecs, P, ScriptMove, EcsOnUpdate);
-  EcsScript(ecs, P, ScriptImpulse, EcsOnFixedUpdate);
-  EcsScript(ecs, P, ScriptShowData, EcsOnRender);
-  EcsScript(ecs, P, ScriptGui, EcsOnGui);
+  AddComponentEx(ecs, P, Collider, colP);
+  AddComponent(ecs, P, Behaviour, BEHAVIOUR_EMPTY);
+  AddComponent(ecs, P, RigidBody, rigidbody_create(50, 1.5f, RIGIDBODY_STATIC));
+  AddScript(ecs, P, ScriptMove, EcsOnUpdate);
+  AddScript(ecs, P, ScriptImpulse, EcsOnFixedUpdate);
+  AddScript(ecs, P, ScriptShowData, EcsOnRender);
+  AddScript(ecs, P, ScriptGui, EcsOnGui);
 
-  EcsSystem(ecs, DebugColliderSystem, EcsOnRender, Transform2, Collider);
+  System(ecs, DebugColliderSystem, EcsOnRender, Transform2, Collider);
 }
 
 int main(void) {
