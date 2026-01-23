@@ -1,7 +1,7 @@
-#ifndef SCENE_MANAGER_H
-#define SCENE_MANAGER_H
+#ifndef GEARECS_SCENE
+#define GEARECS_SCENE
 
-#include <ecs/component.h>
+#include <gearecs/gameobject.h>
 #include <ecs/system.h>
 
 typedef struct {
@@ -9,8 +9,6 @@ typedef struct {
   Color background;
   float fixed_time;
 } GameScene;
-
-Entity EcsEntityData(ECS *ecs);
 
 GameScene SceneStart(uint16_t max_entities, Camera2D camera);
 void SceneLoop(GameScene *scene);

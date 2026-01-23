@@ -1,4 +1,4 @@
-#include <scene/manager.h>
+#include <gearecs/scene.h>
 
 #include <raymath.h>
 #include <stdio.h>

@@ -1,16 +1,10 @@
-#include <scene/manager.h>
+#include <gearecs/scene.h>
 
 #include <stdlib.h>
 
 #ifdef PLATFORM_WEB
 #include <emscripten/emscripten.h>
 #endif
-
-Entity EcsEntityData(ECS *ecs) {
-  Entity e = EcsEntity(ecs);
-  AddComponent(ecs, e, EntityData, ENTITYDATA_ACTIVE);
-  return e;
-}
 
 GameScene SceneStart(uint16_t max_entities, Camera2D camera) {
   ECS *ecs = EcsRegistry(max_entities);
