@@ -26,6 +26,19 @@ typedef struct {
 #define TRANSFORM_LOCALPOS(x, y) {{0, 0}, {1, 1}, 0, {x, y}, {1, 1}, 0}
 
 typedef struct {
+  Vector2 *vx;
+  Vector2 *md;
+  uint8_t vertices;
+  uint8_t overlap;
+  uint8_t solid;
+} Collider;
+
+#define ColliderTrigger(v, r) ColliderCreate(v, r, 0)
+#define ColliderSolid(v, r) ColliderCreate(v, r, 1)
+Collider ColliderCreate(int vertices, float radius, uint8_t solid);
+void ColliderDestructor(void *self);
+
+typedef struct {
   Vector2 normal;
   float distance;
 } Collision;
@@ -35,21 +48,14 @@ typedef struct {
   Collision collision;
 } CollisionEvent;
 
-typedef struct {
-  Vector2 *vx;
-  Vector2 *md;
-  uint8_t vertices;
-  uint8_t overlap;
-  uint8_t solid;
-  void (*OnCollision)(CollisionEvent *event); // OnCollisionStay
-  // void (*OnCollisionEnter)(CollisionEvent *event);
-  // void (*OnCollisionExit)(CollisionEvent *event);
-} Collider;
+typedef void (*CollisionHandler)(ECS *, CollisionEvent *);
 
-#define ColliderTrigger(v, r) ColliderCreate(v, r, 0)
-#define ColliderSolid(v, r) ColliderCreate(v, r, 1)
-Collider ColliderCreate(int vertices, float radius, uint8_t solid);
-void ColliderDestructor(void *self);
+typedef struct {
+  // CollisionHandler OnCollisionEnter;
+  // CollisionHandler OnCollisionStay;
+  // CollisionHandler OnCollisionExit;
+  CollisionHandler OnCollision;
+} CollisionListener;
 
 typedef enum {
   RIGIDBODY_STATIC = 0,

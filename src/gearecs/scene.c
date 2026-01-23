@@ -18,6 +18,7 @@ GameScene SceneStart(uint16_t max_entities, Camera2D camera) {
   Component(ecs, Behaviour);
   Component collider_id = Component(ecs, Collider);
   EcsComponentDestructor(ecs, collider_id, ColliderDestructor);
+  Component(ecs, CollisionListener);
   Component(ecs, RigidBody);
 
   Entity camEntity = EcsEntity(ecs);

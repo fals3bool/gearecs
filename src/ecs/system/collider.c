@@ -114,10 +114,28 @@ void ResolveCollision(Collision *input, Transform2 *ta, RigidBody *ra,
     rb->speed = Vector2Add(rb->speed, Vector2Scale(impulse, invmassB));
 }
 
+void HandleCollisionEvents(ECS *ecs, Entity self, Entity other,
+                           Collision *collision) {
+  CollisionListener *listener_a =
+      GetComponentOptional(ecs, self, CollisionListener);
+  if (listener_a) {
+    CollisionEvent event = {self, other, *collision};
+    listener_a->OnCollision(ecs, &event);
+  }
+
+  CollisionListener *listener_b =
+      GetComponentOptional(ecs, other, CollisionListener);
+  if (listener_b) {
+    CollisionEvent event = {
+        other, self, {Vector2Negate(collision->normal), collision->distance}};
+    listener_b->OnCollision(ecs, &event);
+  }
+}
+
 void CollisionSystem(ECS *ecs, Entity self) {
   Transform2 *ta = GetComponent(ecs, self, Transform2);
   Collider *ca = GetComponent(ecs, self, Collider);
-  RigidBody *ra = GetComponent(ecs, self, RigidBody);
+  RigidBody *ra = GetComponentOptional(ecs, self, RigidBody);
 
   Signature mask = EcsSignature(ecs, Transform2) & EcsSignature(ecs, Collider);
   for (Entity other = self + 1; other < EcsEntityCount(ecs); ++other) {
@@ -125,24 +143,15 @@ void CollisionSystem(ECS *ecs, Entity self) {
       continue;
     if (!EntityIsActive(ecs, other))
       continue;
+
     Transform2 *tb = GetComponent(ecs, other, Transform2);
     Collider *cb = GetComponent(ecs, other, Collider);
-    RigidBody *rb = GetComponent(ecs, other, RigidBody);
+    RigidBody *rb = GetComponentOptional(ecs, other, RigidBody);
 
     Collision collision;
     uint8_t overlap = CollisionSat(ta, ca, tb, cb, &collision);
-
-    if (overlap) {
-      if (ca->OnCollision) {
-        CollisionEvent event = {self, other, collision};
-        ca->OnCollision(&event);
-      }
-      if (cb->OnCollision) {
-        CollisionEvent event = {
-            other, self, {Vector2Negate(collision.normal), collision.distance}};
-        cb->OnCollision(&event);
-      }
-    }
+    if (overlap)
+      HandleCollisionEvents(ecs, self, other, &collision);
 
     ca->overlap |= overlap;
     cb->overlap |= overlap;

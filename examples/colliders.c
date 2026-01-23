@@ -84,9 +84,9 @@ void ScriptShowData(ECS *ecs, Entity self) {
            t->position.y + 40, fontsize, WHITE);
 }
 
-void EventOnCollision(CollisionEvent *event) {
-  printf("Entity: {id: %d}, {collision of: %.2f}, {against: %d}\n", event->self,
-         event->collision.distance, event->other);
+void OnCollisionHandler(ECS *ecs, CollisionEvent *event) {
+  printf("COLLISION: Entity %d hit %d (depth: %.2f)\n", event->self,
+         event->other, event->collision.distance);
 }
 
 void LoadScene(ECS *ecs) {
@@ -96,8 +96,8 @@ void LoadScene(ECS *ecs) {
   Entity A = EcsEntity(ecs);
   AddComponent(ecs, A, Transform2, TRANSFORM_POS(-250, 100));
   Collider colA = ColliderSolid(5, 16);
-  colA.OnCollision = EventOnCollision;
   AddComponentEx(ecs, A, Collider, colA);
+  AddComponent(ecs, A, CollisionListener, {OnCollisionHandler});
   AddComponent(ecs, A, Behaviour, BEHAVIOUR_EMPTY);
   AddScript(ecs, A, ScriptShowData, EcsOnRender);
 
@@ -106,8 +106,8 @@ void LoadScene(ECS *ecs) {
   Entity B = EcsEntity(ecs);
   AddComponent(ecs, B, Transform2, TRANSFORM_POS(-150, -100));
   Collider colB = ColliderTrigger(4, 20);
-  colB.OnCollision = EventOnCollision;
   AddComponentEx(ecs, B, Collider, colB);
+  AddComponent(ecs, B, CollisionListener, {OnCollisionHandler});
   AddComponent(ecs, B, Behaviour, BEHAVIOUR_EMPTY);
   AddScript(ecs, B, ScriptShowData, EcsOnRender);
 
@@ -147,8 +147,8 @@ void LoadScene(ECS *ecs) {
   Entity P = EcsEntity(ecs);
   AddComponent(ecs, P, Transform2, TRANSFORM_ZERO);
   Collider colP = ColliderSolid(3, 22);
-  colP.OnCollision = EventOnCollision;
   AddComponentEx(ecs, P, Collider, colP);
+  AddComponent(ecs, P, CollisionListener, {OnCollisionHandler});
   AddComponent(ecs, P, Behaviour, BEHAVIOUR_EMPTY);
   AddComponent(ecs, P, RigidBody, rigidbody_create(50, 1.5f, RIGIDBODY_STATIC));
   AddScript(ecs, P, ScriptMove, EcsOnUpdate);

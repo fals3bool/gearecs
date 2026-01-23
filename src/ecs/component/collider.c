@@ -16,7 +16,6 @@ Collider ColliderCreate(int vertices, float radius, uint8_t solid) {
     col.md[i] = col.vx[i];
   }
 
-  col.OnCollision = NULL;
   return col;
 }
 
