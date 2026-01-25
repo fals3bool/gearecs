@@ -21,9 +21,9 @@ void EcsFree(ECS *ecs);
 Entity EcsEntity(ECS *ecs);
 uint8_t EcsEntityIsAlive(ECS *ecs, Entity e);
 void EcsEntityFree(ECS *ecs, Entity e);
-
-// non-object-oriented encapsulation
 Entity EcsEntityCount(ECS *ecs);
+
+void EcsForEachEntity(ECS *ecs, Script script);
 
 void EntitySetActive(ECS *ecs, Entity e, uint8_t active);
 uint8_t EntityIsActive(ECS *ecs, Entity e);
@@ -43,17 +43,14 @@ uint8_t EntityIsVisible(ECS *ecs, Entity e);
 #define AddComponent(ecs, entity, C, ...)                                      \
   EcsAddComponent(ecs, entity, EcsCID(ecs, #C), &(C)__VA_ARGS__)
 
-#define AddComponentLocal(ecs, entity, C, ...)                                 \
+#define AddComponentById(ecs, entity, C, ...)                                  \
   EcsAddComponent(ecs, entity, C##_, &(C)__VA_ARGS__)
 
-#define AddComponentEx(ecs, entity, C, ...)                                    \
+#define AddComponentByRef(ecs, entity, C, ...)                                 \
   EcsAddComponent(ecs, entity, EcsCID(ecs, #C), &__VA_ARGS__)
 
 #define GetComponent(ecs, entity, C)                                           \
   (C *)EcsGetComponent(ecs, entity, EcsCID(ecs, #C))
-
-#define GetComponentOptional(ecs, entity, C)                                   \
-  (C *)EcsGetComponentOptional(ecs, entity, EcsCID(ecs, #C))
 
 #define RemoveComponent(ecs, entity, C)                                        \
   EcsRemoveComponent(ecs, entity, EcsCID(ecs, #C))
@@ -64,7 +61,6 @@ Component EcsRegisterComponent(ECS *ecs, char *name, size_t size);
 void EcsAddComponent(ECS *ecs, Entity e, Component id, void *data);
 void EcsRemoveComponent(ECS *ecs, Entity e, Component id);
 void *EcsGetComponent(ECS *ecs, Entity e, Component id);
-void *EcsGetComponentOptional(ECS *ecs, Entity e, Component id);
 
 void EcsComponentDestructor(ECS *ecs, Component id, void (*_dtor)(void *));
 

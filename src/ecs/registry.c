@@ -2,8 +2,6 @@
 
 #include <assert.h>
 #include <ctype.h>
-#include <stdarg.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -101,8 +99,15 @@ void EcsEntityFree(ECS *ecs, Entity e) {
   ecs->free_entities[ecs->free_count++] = e;
 }
 
-// non-object-oriented encapsulation
-Entity EcsEntityCount(ECS *ecs) { return ecs->entity_count; }
+Entity EcsEntityCount(ECS *ecs) { return ecs->entity_count - ecs->free_count; }
+
+void EcsForEachEntity(ECS *ecs, Script script) {
+  for (Entity e = 0; e < ecs->entity_count; e++) {
+    if (!EcsEntityIsAlive(ecs, e))
+      continue;
+    script(ecs, e);
+  }
+}
 
 // ########### //
 //  COMPONENT  //
@@ -139,17 +144,10 @@ void EcsAddComponent(ECS *ecs, Entity e, Component id, void *data) {
 }
 
 void *EcsGetComponent(ECS *ecs, Entity e, Component id) {
-  assert(id < ecs->comp_count && "Component does not exist!");
-  assert(EcsHasComponent(ecs, e, (1u << id)) &&
-         "Entity does not have the requiered component!");
-  return (uint8_t *)ecs->components[id].list + e * ecs->components[id].size;
-}
+  // assert(id < ecs->comp_count && "Component does not exist!");
+  if (!EcsHasComponent(ecs, e, (1u << id)) || id >= ecs->comp_count)
+    return NULL;
 
-void *EcsGetComponentOptional(ECS *ecs, Entity e, Component id) {
-  if (id >= ecs->comp_count)
-    return NULL;
-  if (!EcsHasComponent(ecs, e, (1u << id)))
-    return NULL;
   return (uint8_t *)ecs->components[id].list + e * ecs->components[id].size;
 }
 

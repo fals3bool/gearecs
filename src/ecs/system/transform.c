@@ -8,7 +8,7 @@ void HierarchyTransform(ECS *ecs, Entity e) {
   Transform2 *t = GetComponent(ecs, e, Transform2);
 
   for (Entity i = 0; i < children->count; i++) {
-    Transform2 *ti = GetComponentOptional(ecs, children->list[i], Transform2);
+    Transform2 *ti = GetComponent(ecs, children->list[i], Transform2);
     if (!ti)
       continue;
     ti->position = Vector2Add(t->position, ti->localPosition);

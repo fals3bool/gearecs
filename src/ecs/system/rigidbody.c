@@ -12,14 +12,14 @@ void PhysicsSystem(ECS *ecs, Entity e) {
   t->position.y += rb->speed.y * FIXED_DELTATIME;
 
   if (rb->damping > 0.f)
-    BodyApplyDamping(rb);
+    ApplyDamping(rb);
 }
 
 void GravitySystem(ECS *ecs, Entity e) {
   RigidBody *rb = GetComponent(ecs, e, RigidBody);
-  if (!(rb->type == RIGIDBODY_DYNAMIC && rb->gravity))
+  if (!(rb->type == BODY_DYNAMIC && rb->gravity))
     return;
 
   Vector2 w = {0, 9.8f * rb->mass};
-  BodyApplyForce(rb, w);
+  ApplyForce(rb, w);
 }

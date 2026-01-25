@@ -3,7 +3,6 @@
 
 #include <ecs/component.h>
 
-Entity GameObject(ECS *ecs);
-
+Entity GameObject(ECS *ecs, char *tag);
 
 #endif

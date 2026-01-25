@@ -89,8 +89,8 @@ uint8_t CollisionSat(Transform2 *ta, Collider *ca, Transform2 *tb, Collider *cb,
 
 void ResolveCollision(Collision *input, Transform2 *ta, RigidBody *ra,
                       Transform2 *tb, RigidBody *rb) {
-  float invmassA = (ra && ra->type == RIGIDBODY_DYNAMIC) ? ra->invmass : 0;
-  float invmassB = (rb && rb->type == RIGIDBODY_DYNAMIC) ? rb->invmass : 0;
+  float invmassA = (ra && ra->type == BODY_DYNAMIC) ? ra->invmass : 0;
+  float invmassB = (rb && rb->type == BODY_DYNAMIC) ? rb->invmass : 0;
   if (invmassA + invmassB == 0)
     return;
 
@@ -108,23 +108,21 @@ void ResolveCollision(Collision *input, Transform2 *ta, RigidBody *ra,
   float e = 0;
   float impulseMagnitute = -(1 + e) * speedAlongNormal / (invmassA + invmassB);
   Vector2 impulse = Vector2Scale(input->normal, impulseMagnitute);
-  if (ra && ra->type == RIGIDBODY_DYNAMIC)
+  if (ra && ra->type == BODY_DYNAMIC)
     ra->speed = Vector2Subtract(ra->speed, Vector2Scale(impulse, invmassA));
-  if (rb && rb->type == RIGIDBODY_DYNAMIC)
+  if (rb && rb->type == BODY_DYNAMIC)
     rb->speed = Vector2Add(rb->speed, Vector2Scale(impulse, invmassB));
 }
 
 void HandleCollisionEvents(ECS *ecs, Entity self, Entity other,
                            Collision *collision) {
-  CollisionListener *listener_a =
-      GetComponentOptional(ecs, self, CollisionListener);
+  CollisionListener *listener_a = GetComponent(ecs, self, CollisionListener);
   if (listener_a) {
     CollisionEvent event = {self, other, *collision};
     listener_a->OnCollision(ecs, &event);
   }
 
-  CollisionListener *listener_b =
-      GetComponentOptional(ecs, other, CollisionListener);
+  CollisionListener *listener_b = GetComponent(ecs, other, CollisionListener);
   if (listener_b) {
     CollisionEvent event = {
         other, self, {Vector2Negate(collision->normal), collision->distance}};
@@ -135,7 +133,7 @@ void HandleCollisionEvents(ECS *ecs, Entity self, Entity other,
 void CollisionSystem(ECS *ecs, Entity self) {
   Transform2 *ta = GetComponent(ecs, self, Transform2);
   Collider *ca = GetComponent(ecs, self, Collider);
-  RigidBody *ra = GetComponentOptional(ecs, self, RigidBody);
+  RigidBody *ra = GetComponent(ecs, self, RigidBody);
 
   Signature mask = EcsSignature(ecs, Transform2) & EcsSignature(ecs, Collider);
   for (Entity other = self + 1; other < EcsEntityCount(ecs); ++other) {
@@ -146,10 +144,11 @@ void CollisionSystem(ECS *ecs, Entity self) {
 
     Transform2 *tb = GetComponent(ecs, other, Transform2);
     Collider *cb = GetComponent(ecs, other, Collider);
-    RigidBody *rb = GetComponentOptional(ecs, other, RigidBody);
+    RigidBody *rb = GetComponent(ecs, other, RigidBody);
 
     Collision collision;
-    uint8_t overlap = CollisionSat(ta, ca, tb, cb, &collision);
+    uint8_t overlap =
+        CanCollide(ca, cb) && CollisionSat(ta, ca, tb, cb, &collision);
     if (overlap)
       HandleCollisionEvents(ecs, self, other, &collision);
 
