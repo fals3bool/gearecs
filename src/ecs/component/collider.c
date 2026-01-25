@@ -38,7 +38,8 @@ void ColliderDisableLayer(Collider *c, uint8_t layer) {
 void ColliderDisableAllLayers(Collider *c) { c->collisionMask = 0; }
 
 uint8_t ColliderHasLayerEnabled(const Collider *c, uint8_t layer) {
-  return (c->collisionMask & (1u << (layer % 64))) == c->collisionMask;
+  Signature mask = (1u << (layer % 64));
+  return (c->collisionMask & mask) == mask;
 }
 
 uint8_t CanCollide(Collider *c1, Collider *c2) {
