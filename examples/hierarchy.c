@@ -6,8 +6,8 @@
 void printTree(ECS *ecs, Entity e) { printf("^\n[%d]\n", e); }
 
 void printHierarchy(ECS *ecs, Entity e) {
-  Parent *parent = GetComponentOptional(ecs, e, Parent);
-  Children *children = GetComponentOptional(ecs, e, Children);
+  Parent *parent = GetComponent(ecs, e, Parent);
+  Children *children = GetComponent(ecs, e, Children);
   printf("Hierarchy Relations of [Entity: %d] {%s}\n", e,
          EntityIsActive(ecs, e) ? "ACTIVE" : "NOT ACTIVE");
   if (parent)
@@ -18,7 +18,7 @@ void printHierarchy(ECS *ecs, Entity e) {
       printf(" -> %d\n", children->list[e]);
   }
 
-  Transform2 *t = GetComponentOptional(ecs, e, Transform2);
+  Transform2 *t = GetComponent(ecs, e, Transform2);
   if (t)
     printf("Position: {%.2f, %.2f}\n", t->position.x, t->position.y);
 
@@ -40,11 +40,16 @@ int main(void) {
   Entity B = EcsEntity(ecs);
   Entity C = EcsEntity(ecs);
 
-  AddComponent(ecs, A, EntityData, ENTITYDATA_ACTIVE);
-  AddComponent(ecs, B, EntityData, ENTITYDATA_ACTIVE);
+  AddComponent(ecs, A, EntityData, EntityDataActive("A"));
+  AddComponent(ecs, B, EntityData, EntityDataActive("B"));
 
-  AddComponent(ecs, A, Transform2, TRANSFORM_LOCALPOS(20, 30));
-  AddComponent(ecs, C, Transform2, TRANSFORM_POS(20, 30));
+  AddComponent(ecs, A, Transform2, TransformLocalPos(20, 30));
+  AddComponent(ecs, C, Transform2, TransformPos(20, 30));
+
+  Entity f = FindByTag(ecs, "B");
+  printf("found: {id: %d}\n", f);
+  f = FindByTag(ecs, "A");
+  printf("found: {id: %d}\n", f);
 
   EntityAddChild(ecs, B, A);
   EntityAddChild(ecs, B, C);

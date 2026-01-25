@@ -1,8 +1,8 @@
 #include <falsecs/gameobject.h>
 
-Entity GameObject(ECS *ecs) {
+Entity GameObject(ECS *ecs, char *tag) {
   Entity e = EcsEntity(ecs);
-  AddComponent(ecs, e, EntityData, ENTITYDATA_ACTIVE);
-  AddComponent(ecs, e, Transform2, TRANSFORM_ZERO);
+  AddComponent(ecs, e, EntityData, EntityDataActive(tag));
+  AddComponent(ecs, e, Transform2, TransformZero);
   return e;
 }

@@ -10,8 +10,13 @@
 typedef struct {
   uint8_t active;
   uint8_t visible;
+  char *tag;
 } EntityData;
-#define ENTITYDATA_ACTIVE {1, 1}
+#define EntityDataActive(tag) {1, 1, tag}
+#define EntityDataHidden(tag) {1, 0, tag}
+
+Entity FindByTag(ECS *ecs, char *tag);
+uint8_t HasTag(ECS *ecs, Entity e, char *tag);
 
 typedef struct {
   Vector2 position;
@@ -21,9 +26,9 @@ typedef struct {
   Vector2 localScale;
   float localRotation;
 } Transform2;
-#define TRANSFORM_ZERO {{0, 0}, {1, 1}, 0, {0, 0}, {1, 1}, 0}
-#define TRANSFORM_POS(x, y) {{x, y}, {1, 1}, 0, {0, 0}, {1, 1}, 0}
-#define TRANSFORM_LOCALPOS(x, y) {{0, 0}, {1, 1}, 0, {x, y}, {1, 1}, 0}
+#define TransformZero {{0, 0}, {1, 1}, 0, {0, 0}, {1, 1}, 0}
+#define TransformPos(x, y) {{x, y}, {1, 1}, 0, {0, 0}, {1, 1}, 0}
+#define TransformLocalPos(x, y) {{0, 0}, {1, 1}, 0, {x, y}, {1, 1}, 0}
 
 typedef struct {
   Vector2 *vx;
@@ -31,12 +36,22 @@ typedef struct {
   uint8_t vertices;
   uint8_t overlap;
   uint8_t solid;
+
+  uint8_t layer;
+  Signature collisionMask;
 } Collider;
 
 #define ColliderTrigger(v, r) ColliderCreate(v, r, 0)
 #define ColliderSolid(v, r) ColliderCreate(v, r, 1)
 Collider ColliderCreate(int vertices, float radius, uint8_t solid);
 void ColliderDestructor(void *self);
+
+void ColliderSetLayer(Collider *c, uint8_t layer);
+void ColliderEnableLayer(Collider *c, uint8_t layer);
+void ColliderDisableLayer(Collider *c, uint8_t layer);
+void ColliderDisableAllLayers(Collider *c);
+uint8_t ColliderHasLayerEnabled(const Collider *c, uint8_t layer);
+uint8_t CanCollide(Collider *c1, Collider *c2);
 
 typedef struct {
   Vector2 normal;
@@ -57,11 +72,7 @@ typedef struct {
   CollisionHandler OnCollision;
 } CollisionListener;
 
-typedef enum {
-  RIGIDBODY_STATIC = 0,
-  RIGIDBODY_DYNAMIC,
-  RIGIDBODY_KINEMATIC
-} BodyType;
+typedef enum { BODY_STATIC = 0, BODY_DYNAMIC, BODY_KINEMATIC } BodyType;
 
 typedef struct {
   float mass;
@@ -73,18 +84,27 @@ typedef struct {
   Vector2 acc;
 } RigidBody;
 
-#define rigidbody_create(mass, damping, type)                                  \
+#define RigidBodyCreate(mass, damping, type)                                   \
   {(mass > 0) ? mass : INFINITY,                                               \
    (mass > 0) ? 1.f / mass : 0,                                                \
    damping,                                                                    \
    type,                                                                       \
-   (type == RIGIDBODY_DYNAMIC) ? 1 : 0,                                        \
+   (type == BODY_DYNAMIC) ? 1 : 0,                                             \
    {0, 0},                                                                     \
    {0, 0}}
 
-void BodyApplyForce(RigidBody *rb, Vector2 force);
-void BodyApplyImpulse(RigidBody *rb, Vector2 impulse);
-void BodyApplyDamping(RigidBody *rb);
+#define RigidBodyStatic(mass, damping)                                         \
+  RigidBodyCreate(mass, damping, BODY_STATIC)
+
+#define RigidBodyDynamic(mass, damping)                                        \
+  RigidBodyCreate(mass, damping, BODY_DYNAMIC)
+
+#define RigidBodyKinematic(mass, damping)                                      \
+  RigidBodyCreate(mass, damping, BODY_KINEMATIC)
+
+void ApplyForce(RigidBody *rb, Vector2 force);
+void ApplyImpulse(RigidBody *rb, Vector2 impulse);
+void ApplyDamping(RigidBody *rb);
 
 typedef struct {
   Texture tex;

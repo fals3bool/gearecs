@@ -22,7 +22,7 @@ GameScene SceneStart(uint16_t max_entities, Camera2D camera) {
   Component(ecs, RigidBody);
 
   Entity camEntity = EcsEntity(ecs);
-  AddComponentEx(ecs, camEntity, Camera2D, camera);
+  AddComponentByRef(ecs, camEntity, Camera2D, camera);
 
   System(ecs, BehaviourStartSystem, EcsOnStart, Behaviour);
   System(ecs, BehaviourUpdateSystem, EcsOnUpdate, Behaviour);

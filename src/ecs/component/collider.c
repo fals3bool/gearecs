@@ -24,3 +24,24 @@ void ColliderDestructor(void *_self) {
   free(self->md);
   free(self->vx);
 }
+
+void ColliderSetLayer(Collider *c, uint8_t layer) { c->layer = layer % 64; }
+
+void ColliderEnableLayer(Collider *c, uint8_t layer) {
+  c->collisionMask |= (1u << (layer % 64));
+}
+
+void ColliderDisableLayer(Collider *c, uint8_t layer) {
+  c->collisionMask |= ~(1u << (layer % 64));
+}
+
+void ColliderDisableAllLayers(Collider *c) { c->collisionMask = 0; }
+
+uint8_t ColliderHasLayerEnabled(const Collider *c, uint8_t layer) {
+  return (c->collisionMask & (1u << (layer % 64))) == c->collisionMask;
+}
+
+uint8_t CanCollide(Collider *c1, Collider *c2) {
+  return (c1->collisionMask == 0 || ColliderHasLayerEnabled(c1, c2->layer)) &&
+         (c2->collisionMask == 0 || ColliderHasLayerEnabled(c2, c1->layer));
+}

@@ -1,16 +1,16 @@
 #include <ecs/component.h>
 
-void BodyApplyForce(RigidBody *rb, Vector2 force) {
+void ApplyForce(RigidBody *rb, Vector2 force) {
   rb->acc.x += force.x / rb->mass;
   rb->acc.y += force.y / rb->mass;
 }
 
-void BodyApplyImpulse(RigidBody *rb, Vector2 impulse) {
+void ApplyImpulse(RigidBody *rb, Vector2 impulse) {
   rb->speed.x += impulse.x / rb->mass;
   rb->speed.y += impulse.y / rb->mass;
 }
 
-void BodyApplyDamping(RigidBody *rb) {
+void ApplyDamping(RigidBody *rb) {
   float fac = expf(-rb->damping * FIXED_DELTATIME);
   rb->speed.x *= fac;
   rb->speed.y *= fac;
