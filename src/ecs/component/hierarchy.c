@@ -8,6 +8,11 @@ struct Children {
   Entity allocated;
 };
 
+// Every parent operation will call the children operation with swapped entities
+// and change the parent component.
+//
+// The children operation is the one with the logic.
+
 bool EntitySetParent(ECS *ecs, Entity e, Entity p) {
   Parent *old = GetComponent(ecs, e, Parent);
   if (old && old->entity == p)
@@ -35,6 +40,7 @@ bool EntitySetChild(ECS *ecs, Entity e, Entity c) {
       if (children->list[i] == c)
         return false;
 
+    // add to existing component, realloc if necessary
     Entity i = children->count++;
     if (children->count > children->allocated) {
       children->allocated = children->allocated ? children->allocated * 2 : 4;
@@ -43,11 +49,13 @@ bool EntitySetChild(ECS *ecs, Entity e, Entity c) {
     }
     children->list[i] = c;
   } else {
+    // add within a new component instance
     Entity *list = malloc(sizeof(Entity));
     list[0] = c;
     AddComponent(ecs, e, Children, {list, 1, 1});
   }
 
+  // Hierarchical entitydata states
   EntitySetActive(ecs, c, EntityIsActive(ecs, e));
   EntitySetVisible(ecs, c, EntityIsVisible(ecs, e));
   return true;
@@ -62,6 +70,13 @@ void EntityAddChild(ECS *ecs, Entity e, Entity c) {
     return;
   if (EntitySetChild(ecs, e, c))
     EntitySetParent(ecs, c, e);
+}
+
+void EntityRemoveParent(ECS *ecs, Entity e) {
+  Parent *parent = GetComponent(ecs, e, Parent);
+  if (!parent)
+    return;
+  EntityRemoveChild(ecs, parent->entity, e);
 }
 
 void EntityRemoveChild(ECS *ecs, Entity e, Entity c) {
@@ -81,17 +96,8 @@ void EntityRemoveChild(ECS *ecs, Entity e, Entity c) {
     RemoveComponent(ecs, e, Children);
 }
 
-void EntityRemoveParent(ECS *ecs, Entity e) {
-  Parent *parent = GetComponent(ecs, e, Parent);
-  if (!parent)
-    return;
-  EntityRemoveChild(ecs, parent->entity, e);
-}
-
 void EntityDestroy(ECS *ecs, Entity e) {
-  Parent *parent = GetComponent(ecs, e, Parent);
-  if (parent)
-    EntityRemoveChild(ecs, parent->entity, e);
+  EntityRemoveParent(ecs, e);
 
   Children *children = GetComponent(ecs, e, Children);
   if (children)
@@ -102,9 +108,7 @@ void EntityDestroy(ECS *ecs, Entity e) {
 }
 
 void EntityDestroyRecursive(ECS *ecs, Entity e) {
-  Parent *parent = GetComponent(ecs, e, Parent);
-  if (parent)
-    EntityRemoveChild(ecs, parent->entity, e);
+  EntityRemoveParent(ecs, e);
 
   Children *children = GetComponent(ecs, e, Children);
   if (children)

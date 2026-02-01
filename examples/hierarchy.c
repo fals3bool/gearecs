@@ -46,10 +46,10 @@ int main(void) {
   AddComponent(ecs, A, Transform2, TransformLocalPos(20, 30));
   AddComponent(ecs, C, Transform2, TransformPos(20, 30));
 
-  Entity f = FindByTag(ecs, "B");
-  printf("found: {id: %d}\n", f);
-  f = FindByTag(ecs, "A");
-  printf("found: {id: %d}\n", f);
+  // Entity f = FindByTag(ecs, "B");
+  // printf("found: {id: %d}\n", f);
+  // f = FindByTag(ecs, "A");
+  // printf("found: {id: %d}\n", f);
 
   EntityAddChild(ecs, B, A);
   EntityAddChild(ecs, B, C);
@@ -79,7 +79,6 @@ int main(void) {
   // EntityDestroyRecursive(ecs, C); // destroy C and children...
 
   EcsRunSystems(ecs, 0);
-  printHierarchy(ecs, C);
 
   return 0;
 }
