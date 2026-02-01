@@ -48,7 +48,7 @@ System(ecs, BehaviourFixedSystem, EcsOnFixedUpdate, Behaviour);
 System(ecs, BehaviourRenderSystem, EcsOnRender, Behaviour);
 System(ecs, BehaviourGuiSystem, EcsOnGui, Behaviour);
 
-System(ecs, HierarchyTransform, EcsOnUpdate, Transform2, Children);
+System(ecs, HierarchyTransformSystem, EcsOnUpdate, Transform2, Children);
 System(ecs, TransformColliderSystem, EcsOnUpdate, Transform2, Collider);
 System(ecs, CollisionSystem, EcsOnUpdate, Transform2, Collider);
 

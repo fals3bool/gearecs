@@ -1,22 +1,3 @@
-# GearECS
-
-A lightweight Entity-Component-System (ECS) library for C game development, built on top of raylib.
-GearECS provides a modern, data-oriented architecture for creating efficient and scalable 2D games.
-
-## Features
-
-- **ECS Architecture** - Flexible, data-driven design pattern
-- **Built-in Components** - Transform2, RigidBody, Collider, Sprite, and more
-- **Physics Simulation** - Collision detection, forces, gravity, and rigid body dynamics
-- **Hierarchy Relationships** - Parent-child relationships for complex object structures
-- **Entity Behaviour** - Entity scripting across multiple execution layers
-- **Scene Management** - Automatic scene setup with camera and generic game loop
-- **Multi-platform Support** - Linux, Windows, and Web (via Emscripten)
-- **Raylib Integration** - Seamless rendering and input handling
-
-## Basic Example
-
-```c
 #include <gearecs.h>
 
 #define SCREEN_WIDTH 800
@@ -56,8 +37,3 @@ int main(void) {
   UnloadTexture(tex);
   return 0;
 }
-```
-
-
-
-

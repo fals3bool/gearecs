@@ -26,10 +26,10 @@ void foo(ECS *ecs) {
     stats.health = 20;
     stats.speed = 5;
     stats.level = 2;
-    // AddByRef allows a complex initialization
+    // AddByRef allows complex initialization
     AddComponentByRef(ecs, player, PlayerStats, stats);
 
-    // retrieve the component
+    // Retrieve component
     PlayerStats *ps = GetComponent(ecs, player, PlayerStats);
     ps->level++;
 
@@ -46,7 +46,7 @@ void foo(ECS *ecs) {
 - **Collider** - Polygon collision detection with layers
 - **Sprite** - 2D texture rendering
 - **Behaviour** - Entity scripting system
-- **Parent/Children** - Hierarchy relationships
+- **Parent / Children** - Hierarchy relationships
 
 Using EcsWorld() there is no need to register any Component.
 
