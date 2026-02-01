@@ -5,6 +5,8 @@ web-build/
 win-build/
 toolchain-mingw64.cmake
 
+docs/custom/
+docs/view/
 
 ## GENERATED ##
 
