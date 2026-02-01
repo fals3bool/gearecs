@@ -106,7 +106,6 @@ void LoadScene(ECS *ecs) {
   Collider colA = ColliderSolid(5, 16);
   AddComponentByRef(ecs, A, Collider, colA);
   AddComponent(ecs, A, CollisionListener, {OnCollisionHandler});
-  AddComponent(ecs, A, Behaviour, {0});
   AddScript(ecs, A, ScriptShowData, EcsOnRender);
 
   // COLLIDER: [TRIGGER]
@@ -116,7 +115,6 @@ void LoadScene(ECS *ecs) {
   Collider colB = ColliderTrigger(4, 20);
   AddComponentByRef(ecs, B, Collider, colB);
   AddComponent(ecs, B, CollisionListener, {OnCollisionHandler});
-  AddComponent(ecs, B, Behaviour, Empty);
   AddScript(ecs, B, ScriptShowData, EcsOnRender);
 
   // COLLIDER: [SOLID]
@@ -128,7 +126,6 @@ void LoadScene(ECS *ecs) {
   RigidBody rbC = RigidBodyDynamic(80, 1.2f);
   rbC.gravity = false;
   AddComponentByRef(ecs, C, RigidBody, rbC);
-  AddComponent(ecs, C, Behaviour, Empty);
   AddScript(ecs, C, ScriptShowData, EcsOnRender);
 
   // COLLIDER: [SOLID]
@@ -138,7 +135,6 @@ void LoadScene(ECS *ecs) {
   Collider colD = ColliderSolid(7, 24);
   AddComponentByRef(ecs, D, Collider, colD);
   AddComponent(ecs, D, RigidBody, RigidBodyStatic);
-  AddComponent(ecs, D, Behaviour, Empty);
   AddScript(ecs, D, ScriptShowData, EcsOnRender);
 
   // COLLIDER: [SOLID]
@@ -151,7 +147,6 @@ void LoadScene(ECS *ecs) {
   ColliderEnableLayer(&colE, 1);
   AddComponentByRef(ecs, E, Collider, colE);
   AddComponent(ecs, E, RigidBody, RigidBodyStatic);
-  AddComponent(ecs, E, Behaviour, Empty);
   AddScript(ecs, E, ScriptShowData, EcsOnRender);
 
   // PLAYER
@@ -160,7 +155,6 @@ void LoadScene(ECS *ecs) {
   Collider colP = ColliderSolid(3, 22);
   AddComponentByRef(ecs, P, Collider, colP);
   AddComponent(ecs, P, CollisionListener, {OnCollisionHandler});
-  AddComponent(ecs, P, Behaviour, Empty);
   AddComponent(ecs, P, RigidBody, RigidBodyKinematic(50, 1.5f));
   AddScript(ecs, P, ScriptMove, EcsOnUpdate);
   AddScript(ecs, P, ScriptImpulse, EcsOnFixedUpdate);

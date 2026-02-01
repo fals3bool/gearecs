@@ -86,11 +86,11 @@ Entity EcsEntity(ECS *ecs) {
   return e;
 }
 
-uint8_t EcsEntityIsAlive(ECS *ecs, Entity e) {
+bool EcsEntityIsAlive(ECS *ecs, Entity e) {
   for (Entity i = 0; i < ecs->free_count; i++)
     if (ecs->free_entities[i] == e)
-      return 0;
-  return 1;
+      return false;
+  return true;
 }
 
 void EcsEntityFree(ECS *ecs, Entity e) {
@@ -175,7 +175,7 @@ void EcsComponentDestructor(ECS *ecs, Component id, void (*_dtor)(void *)) {
   ecs->components[id].dtor = _dtor;
 }
 
-uint8_t EcsHasComponent(ECS *ecs, Entity e, Signature mask) {
+bool EcsHasComponent(ECS *ecs, Entity e, Signature mask) {
   return (ecs->entities[e] & mask) == mask;
 }
 
@@ -252,7 +252,7 @@ void EcsAddSystem(ECS *ecs, Script s, EcsLayer ly, Signature mask) {
   ecs->systems[ly].list[cur].mask = mask;
 }
 
-uint8_t EcsCanRun(ECS *ecs, System *system, Entity e, EcsLayer ly) {
+bool EcsCanRun(ECS *ecs, System *system, Entity e, EcsLayer ly) {
   if (!EcsHasComponent(ecs, e, system->mask))
     return 0;
   if (ly < EcsOnRender)

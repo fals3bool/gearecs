@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-Collider ColliderCreate(int vertices, float radius, uint8_t solid) {
+Collider ColliderCreate(int vertices, float radius, bool solid) {
   Collider col = {0};
   col.vx = (Vector2 *)malloc(sizeof(Vector2) * vertices);
   col.md = (Vector2 *)malloc(sizeof(Vector2) * vertices);
@@ -18,7 +18,7 @@ Collider ColliderCreate(int vertices, float radius, uint8_t solid) {
   return col;
 }
 
-Collider ColliderVec(uint8_t vertices, uint8_t solid, Vector2 *vecs) {
+Collider ColliderVec(uint8_t vertices, Vector2 *vecs, bool solid) {
   Collider col = {0};
   col.vertices = vertices;
   col.solid = solid;
@@ -32,12 +32,12 @@ Collider ColliderVec(uint8_t vertices, uint8_t solid, Vector2 *vecs) {
   return col;
 }
 
-Collider ColliderRect(Rectangle rect, uint8_t solid) {
+Collider ColliderRect(Rectangle rect, bool solid) {
   Vector2 vecs[] = {{rect.x, rect.y},
                     {rect.x, rect.y + rect.height},
                     {rect.x + rect.width, rect.y + rect.height},
                     {rect.x + rect.width, rect.y}};
-  return ColliderVec(4, solid, vecs);
+  return ColliderVec(4, vecs, solid);
 }
 
 void ColliderDestructor(void *_self) {
@@ -58,12 +58,12 @@ void ColliderDisableLayer(Collider *c, uint8_t layer) {
 
 void ColliderDisableAllLayers(Collider *c) { c->collisionMask = 0; }
 
-uint8_t ColliderHasLayerEnabled(const Collider *c, uint8_t layer) {
+bool ColliderHasLayerEnabled(const Collider *c, uint8_t layer) {
   Signature mask = (1u << (layer % 64));
   return (c->collisionMask & mask) == mask;
 }
 
-uint8_t CanCollide(Collider *c1, Collider *c2) {
+bool CanCollide(Collider *c1, Collider *c2) {
   return (c1->collisionMask == 0 || ColliderHasLayerEnabled(c1, c2->layer)) &&
          (c2->collisionMask == 0 || ColliderHasLayerEnabled(c2, c1->layer));
 }

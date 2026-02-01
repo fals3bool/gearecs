@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 /**
  * @file registry.h
@@ -173,7 +174,7 @@ Entity EcsEntity(ECS *ecs);
  * @param e Entity ID to check
  * @return true if entity is alive, false if destroyed
  */
-uint8_t EcsEntityIsAlive(ECS *ecs, Entity e);
+bool EcsEntityIsAlive(ECS *ecs, Entity e);
 
 /**
  * Destroys an entity and removes all its components.
@@ -230,7 +231,7 @@ void EcsForEachEntity(ECS *ecs, Script script);
  * @see EntityIsActive() to check state
  * @see EntitySetVisible() for render control
  */
-void EntitySetActive(ECS *ecs, Entity e, uint8_t active);
+void EntitySetActive(ECS *ecs, Entity e, bool active);
 
 /**
  * Checks if an entity is active for Update systems.
@@ -239,7 +240,7 @@ void EntitySetActive(ECS *ecs, Entity e, uint8_t active);
  * @param e Entity to check
  * @return true if active, false otherwise
  */
-uint8_t EntityIsActive(ECS *ecs, Entity e);
+bool EntityIsActive(ECS *ecs, Entity e);
 
 /**
  * Sets whether an entity is visible for rendering.
@@ -254,7 +255,7 @@ uint8_t EntityIsActive(ECS *ecs, Entity e);
  * @see EntityIsVisible() to check state
  * @see EntitySetActive() for update control
  */
-void EntitySetVisible(ECS *ecs, Entity e, uint8_t visible);
+void EntitySetVisible(ECS *ecs, Entity e, bool visible);
 
 /**
  * Checks if an entity is visible for Render systems.
@@ -263,7 +264,7 @@ void EntitySetVisible(ECS *ecs, Entity e, uint8_t visible);
  * @param e Entity to check
  * @return true if visible, false otherwise
  */
-uint8_t EntityIsVisible(ECS *ecs, Entity e);
+bool EntityIsVisible(ECS *ecs, Entity e);
 
 // ########### //
 //  COMPONENT  //
@@ -444,7 +445,7 @@ void EcsComponentDestructor(ECS *ecs, Component id, void (*_dtor)(void *));
  * @param mask Component signature to test against
  * @return true if entity has all components, false otherwise
  */
-uint8_t EcsHasComponent(ECS *ecs, Entity e, Signature mask);
+bool EcsHasComponent(ECS *ecs, Entity e, Signature mask);
 
 /**
  * Finds component ID by component name.

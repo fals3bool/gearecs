@@ -8,7 +8,7 @@ struct Children {
   Entity allocated;
 };
 
-uint8_t EntitySetParent(ECS *ecs, Entity e, Entity p) {
+bool EntitySetParent(ECS *ecs, Entity e, Entity p) {
   Parent *old = GetComponent(ecs, e, Parent);
   if (old && old->entity == p)
     return true;
@@ -19,7 +19,7 @@ uint8_t EntitySetParent(ECS *ecs, Entity e, Entity p) {
   return true;
 }
 
-uint8_t EntitySetChild(ECS *ecs, Entity e, Entity c) {
+bool EntitySetChild(ECS *ecs, Entity e, Entity c) {
   // E child of C child of E -> loop! (recursively)
   Parent *parent = GetComponent(ecs, e, Parent);
   while (parent) {

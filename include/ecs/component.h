@@ -47,9 +47,9 @@
  * @note Entities without this component are considered active and visible
  */
 typedef struct {
-  uint8_t active;  ///< Whether entity participates in Update systems
-  uint8_t visible; ///< Whether entity participates in Render systems
-  char *tag;       ///< String identifier for entity lookup
+  bool active;  ///< Whether entity participates in Update systems
+  bool visible; ///< Whether entity participates in Render systems
+  char *tag;    ///< String identifier for entity lookup
 } EntityData;
 
 /**
@@ -60,7 +60,7 @@ typedef struct {
  *
  * Example: AddComponent(world, e, EntityData, EntityDataActive("Player"));
  */
-#define EntityDataActive(tag) {1, 1, tag}
+#define EntityDataActive(tag) {true, true, tag}
 
 /**
  * Creates an EntityData component with active but hidden state.
@@ -73,7 +73,7 @@ typedef struct {
  * Example: AddComponent(world, e, EntityData,
  * EntityDataHidden("TriggerBlock"));
  */
-#define EntityDataHidden(tag) {1, 0, tag}
+#define EntityDataHidden(tag) {true, false, tag}
 
 /**
  * Creates an EntityData component with inactive and hidden state.
@@ -86,7 +86,7 @@ typedef struct {
  * Example: AddComponent(world, e, EntityData,
  * EntityDataInactive("EnemyForLater"));
  */
-#define EntityDataInactive(tag) {0, 0, tag}
+#define EntityDataInactive(tag) {false, false, tag}
 
 /**
  * Finds the first entity with the specified tag.
@@ -112,7 +112,7 @@ Entity FindByTag(ECS *ecs, char *tag);
  * @param tag Tag string to compare
  * @return true if entity has matching tag, false otherwise
  */
-uint8_t HasTag(ECS *ecs, Entity e, char *tag);
+bool HasTag(ECS *ecs, Entity e, char *tag);
 
 // ########### //
 //  TRANSFORM  //
@@ -194,8 +194,8 @@ typedef struct {
   Vector2 *vx;      ///< Array of polygon vertices (local space)
   Vector2 *md;      ///< Axis-aligned bounding box data (internal)
   uint8_t vertices; ///< Number of vertices in polygon
-  uint8_t overlap;  ///< Collision overlap flag (internal)
-  uint8_t solid;    ///< 1 for solid, 0 for trigger
+  bool overlap;     ///< Collision overlap flag (internal)
+  bool solid;       ///< true for solid, false for trigger
 
   uint8_t layer;           ///< Collision layer (0-7)
   Signature collisionMask; ///< Bitmask of layers this collider can collide with
@@ -211,7 +211,7 @@ typedef struct {
  * @param r Bounding radius for broad-phase culling
  * @return Collider instance
  */
-#define ColliderTrigger(v, r) ColliderCreate(v, r, 0)
+#define ColliderTrigger(v, r) ColliderCreate(v, r, false)
 
 /**
  * Creates a solid collider.
@@ -223,7 +223,7 @@ typedef struct {
  * @param r Bounding radius for broad-phase culling
  * @return Collider instance
  */
-#define ColliderSolid(v, r) ColliderCreate(v, r, 1)
+#define ColliderSolid(v, r) ColliderCreate(v, r, true)
 
 /**
  * Creates a collider with specified parameters.
@@ -233,10 +233,10 @@ typedef struct {
  *
  * @param vertices Number of vertices for polygon
  * @param radius Bounding radius for optimization
- * @param solid 1 for solid, 0 for trigger
+ * @param solid true for solid, false for trigger
  * @return Configured Collider instance
  */
-Collider ColliderCreate(int vertices, float radius, uint8_t solid);
+Collider ColliderCreate(int vertices, float radius, bool solid);
 
 /**
  * Creates a collider from a list of vertices.
@@ -245,11 +245,11 @@ Collider ColliderCreate(int vertices, float radius, uint8_t solid);
  * polygons.
  *
  * @param vertices Number of vertices for polygon
- * @param solid 1 for solid, 0 for trigger
+ * @param solid true for solid, false for trigger
  * @param vecs List of vertices
  * @return Configured Collider instance
  */
-Collider ColliderVec(uint8_t vertices, uint8_t solid, Vector2 *vecs);
+Collider ColliderVec(uint8_t vertices, Vector2 *vecs, bool solid);
 
 /**
  * Creates a collider from a rectangle.
@@ -258,10 +258,10 @@ Collider ColliderVec(uint8_t vertices, uint8_t solid, Vector2 *vecs);
  * entity.transform.position
  *
  * @param rect Rectangle bounding box
- * @param solid 1 for solid, 0 for trigger
+ * @param solid true for solid, false for trigger
  * @return Configured Collider instance
  */
-Collider ColliderRect(Rectangle rect, uint8_t solid);
+Collider ColliderRect(Rectangle rect, bool solid);
 
 /**
  * Destructor for Collider component.
@@ -324,7 +324,7 @@ void ColliderDisableAllLayers(Collider *c);
  * @param layer Layer number to check (0-64)
  * @return true if enabled, false if disabled
  */
-uint8_t ColliderHasLayerEnabled(const Collider *c, uint8_t layer);
+bool ColliderHasLayerEnabled(const Collider *c, uint8_t layer);
 
 /**
  * Checks if two colliders can collide based on their layers.
@@ -333,7 +333,7 @@ uint8_t ColliderHasLayerEnabled(const Collider *c, uint8_t layer);
  * @param c2 Second collider
  * @return true if colliders can interact, false otherwise
  */
-uint8_t CanCollide(Collider *c1, Collider *c2);
+bool CanCollide(Collider *c1, Collider *c2);
 
 /**
  * Collision data structure.
@@ -408,13 +408,13 @@ typedef enum {
  * components for collision response.
  */
 typedef struct {
-  float mass;      ///< Object mass (g), 0 or INFINITY for static objects
-  float invmass;   ///< Inverse mass (1/mass), 0 for static objects
-  float damping;   ///< Velocity damping factor (0-1, 1 = no damping)
-  BodyType type;   ///< Physics behavior type
-  uint8_t gravity; ///< Whether gravity affects this body
-  Vector2 speed;   ///< Current velocity (units/second)
-  Vector2 acc;     ///< Current acceleration (units/second²)
+  float mass;    ///< Object mass (g), 0 or INFINITY for static objects
+  float invmass; ///< Inverse mass (1/mass), 0 for static objects
+  float damping; ///< Velocity damping factor (0-1, 1 = no damping)
+  BodyType type; ///< Physics behavior type
+  bool gravity;  ///< Whether gravity affects this body
+  Vector2 speed; ///< Current velocity (units/second)
+  Vector2 acc;   ///< Current acceleration (units/second²)
 } RigidBody;
 
 /**
@@ -433,7 +433,7 @@ typedef struct {
    (mass > 0) ? 1.f / mass : 0,                                                \
    damping,                                                                    \
    type,                                                                       \
-   (type == BODY_DYNAMIC) ? 1 : 0,                                             \
+   (type == BODY_DYNAMIC) ? true : false,                                      \
    {0, 0},                                                                     \
    {0, 0}}
 
