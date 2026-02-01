@@ -1,4 +1,4 @@
-#include <falsecs/gameobject.h>
+#include <gearecs/gameobject.h>
 
 Entity GameObject(ECS *ecs, char *tag) {
   Entity e = EcsEntity(ecs);

@@ -8,7 +8,6 @@ Collider ColliderCreate(int vertices, float radius, uint8_t solid) {
   col.md = (Vector2 *)malloc(sizeof(Vector2) * vertices);
   col.vertices = vertices;
   col.solid = solid;
-  col.overlap = 0;
 
   float angle = PI * 2 / vertices;
   for (int i = 0; i < vertices; i++) {
@@ -17,6 +16,28 @@ Collider ColliderCreate(int vertices, float radius, uint8_t solid) {
   }
 
   return col;
+}
+
+Collider ColliderVec(uint8_t vertices, uint8_t solid, Vector2 *vecs) {
+  Collider col = {0};
+  col.vertices = vertices;
+  col.solid = solid;
+  col.vx = (Vector2 *)malloc(sizeof(Vector2) * vertices);
+  col.md = (Vector2 *)malloc(sizeof(Vector2) * vertices);
+
+  for (uint8_t i = 0; i < vertices; i++) {
+    col.vx[i] = vecs[i];
+    col.md[i] = vecs[i];
+  }
+  return col;
+}
+
+Collider ColliderRect(Rectangle rect, uint8_t solid) {
+  Vector2 vecs[] = {{rect.x, rect.y},
+                    {rect.x, rect.y + rect.height},
+                    {rect.x + rect.width, rect.y + rect.height},
+                    {rect.x + rect.width, rect.y}};
+  return ColliderVec(4, solid, vecs);
 }
 
 void ColliderDestructor(void *_self) {

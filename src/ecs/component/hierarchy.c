@@ -2,17 +2,20 @@
 
 #include <stdlib.h>
 
+struct Children {
+  Entity *list;
+  Entity count;
+  Entity allocated;
+};
+
 uint8_t EntitySetParent(ECS *ecs, Entity e, Entity p) {
   Parent *old = GetComponent(ecs, e, Parent);
   if (old && old->entity == p)
-    return false;
+    return true;
 
-  if (old) {
+  if (old)
     EntityRemoveChild(ecs, old->entity, e);
-    old->entity = p;
-  } else {
-    AddComponent(ecs, e, Parent, {p});
-  }
+  AddComponent(ecs, e, Parent, {p});
   return true;
 }
 
@@ -73,6 +76,7 @@ void EntityRemoveChild(ECS *ecs, Entity e, Entity c) {
       children->list[i] = children->list[--children->count];
   }
 
+  RemoveComponent(ecs, c, Parent);
   if (children->count == 0)
     RemoveComponent(ecs, e, Children);
 }
@@ -81,8 +85,7 @@ void EntityRemoveParent(ECS *ecs, Entity e) {
   Parent *parent = GetComponent(ecs, e, Parent);
   if (!parent)
     return;
-  EntityRemoveChild(ecs, e, parent->entity);
-  RemoveComponent(ecs, e, Parent);
+  EntityRemoveChild(ecs, parent->entity, e);
 }
 
 void EntityDestroy(ECS *ecs, Entity e) {

@@ -1,6 +1,5 @@
-#include <falsecs/scene.h>
+#include <gearecs/world.h>
 
-#include <raymath.h>
 #include <stdio.h>
 
 #define SCREEN_W 800
@@ -73,7 +72,7 @@ void ScriptShowData(ECS *ecs, Entity self) {
            t->position.y + 20, fontsize, WHITE);
 
   char layertxt[20];
-  snprintf(layertxt, 10, "Layer: %d", c->layer);
+  snprintf(layertxt, 11, "Layer: %d", c->layer);
   DrawText(layertxt,
            t->position.x -
                MeasureTextEx(GetFontDefault(), layertxt, fontsize, 1).x / 2,
@@ -117,7 +116,7 @@ void LoadScene(ECS *ecs) {
   Collider colB = ColliderTrigger(4, 20);
   AddComponentByRef(ecs, B, Collider, colB);
   AddComponent(ecs, B, CollisionListener, {OnCollisionHandler});
-  AddComponent(ecs, B, Behaviour, BEHAVIOUR_EMPTY);
+  AddComponent(ecs, B, Behaviour, Empty);
   AddScript(ecs, B, ScriptShowData, EcsOnRender);
 
   // COLLIDER: [SOLID]
@@ -129,7 +128,7 @@ void LoadScene(ECS *ecs) {
   RigidBody rbC = RigidBodyDynamic(80, 1.2f);
   rbC.gravity = false;
   AddComponentByRef(ecs, C, RigidBody, rbC);
-  AddComponent(ecs, C, Behaviour, BEHAVIOUR_EMPTY);
+  AddComponent(ecs, C, Behaviour, Empty);
   AddScript(ecs, C, ScriptShowData, EcsOnRender);
 
   // COLLIDER: [SOLID]
@@ -138,8 +137,8 @@ void LoadScene(ECS *ecs) {
   AddComponent(ecs, D, Transform2, TransformPos(150, -100));
   Collider colD = ColliderSolid(7, 24);
   AddComponentByRef(ecs, D, Collider, colD);
-  AddComponent(ecs, D, RigidBody, RigidBodyStatic(50, 1));
-  AddComponent(ecs, D, Behaviour, BEHAVIOUR_EMPTY);
+  AddComponent(ecs, D, RigidBody, RigidBodyStatic);
+  AddComponent(ecs, D, Behaviour, Empty);
   AddScript(ecs, D, ScriptShowData, EcsOnRender);
 
   // COLLIDER: [SOLID]
@@ -151,8 +150,8 @@ void LoadScene(ECS *ecs) {
   ColliderSetLayer(&colE, 1);
   ColliderEnableLayer(&colE, 1);
   AddComponentByRef(ecs, E, Collider, colE);
-  AddComponent(ecs, E, RigidBody, RigidBodyStatic(30, 1));
-  AddComponent(ecs, E, Behaviour, BEHAVIOUR_EMPTY);
+  AddComponent(ecs, E, RigidBody, RigidBodyStatic);
+  AddComponent(ecs, E, Behaviour, Empty);
   AddScript(ecs, E, ScriptShowData, EcsOnRender);
 
   // PLAYER
@@ -161,7 +160,7 @@ void LoadScene(ECS *ecs) {
   Collider colP = ColliderSolid(3, 22);
   AddComponentByRef(ecs, P, Collider, colP);
   AddComponent(ecs, P, CollisionListener, {OnCollisionHandler});
-  AddComponent(ecs, P, Behaviour, BEHAVIOUR_EMPTY);
+  AddComponent(ecs, P, Behaviour, Empty);
   AddComponent(ecs, P, RigidBody, RigidBodyKinematic(50, 1.5f));
   AddScript(ecs, P, ScriptMove, EcsOnUpdate);
   AddScript(ecs, P, ScriptImpulse, EcsOnFixedUpdate);
@@ -176,11 +175,11 @@ int main(void) {
   InitWindow(SCREEN_W, SCREEN_H, "Colliders & RigidBodies");
   Camera2D cam = {{SCREEN_W / 2.f, SCREEN_H / 2.f}, {0, 0}, 0, 1.f};
 
-  GameScene gs = SceneStart(32, cam);
-  LoadScene(gs.ecs);
-  SceneLoop(&gs);
+  ECS *ecs = EcsWorld(32, cam);
+  LoadScene(ecs);
+  EcsLoop(ecs);
 
-  SceneClean(&gs);
+  EcsFree(ecs);
   CloseWindow();
 
   return 0;

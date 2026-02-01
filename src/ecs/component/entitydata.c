@@ -1,5 +1,11 @@
 #include <ecs/component.h>
+
 #include <string.h>
+
+void ActiveChildScript(ECS *ecs, Entity e) { EntitySetActive(ecs, e, true); }
+void DeactiveChildScript(ECS *ecs, Entity e) { EntitySetActive(ecs, e, false); }
+void ShowChildScript(ECS *ecs, Entity e) { EntitySetVisible(ecs, e, true); }
+void HideChildScript(ECS *ecs, Entity e) { EntitySetVisible(ecs, e, false); }
 
 void EntitySetActive(ECS *ecs, Entity e, uint8_t active) {
   EntityData *edata = GetComponent(ecs, e, EntityData);
@@ -16,10 +22,10 @@ void EntitySetActive(ECS *ecs, Entity e, uint8_t active) {
     }
   }
 
-  Children *children = GetComponent(ecs, e, Children);
-  if (children)
-    for (Entity i = 0; i < children->count; i++)
-      EntitySetActive(ecs, children->list[i], active);
+  if (active)
+    EntityForEachChild(ecs, e, ActiveChildScript);
+  else
+    EntityForEachChild(ecs, e, DeactiveChildScript);
 }
 
 uint8_t EntityIsActive(ECS *ecs, Entity e) {
@@ -40,10 +46,10 @@ void EntitySetVisible(ECS *ecs, Entity e, uint8_t visible) {
   if (edata)
     edata->visible = visible;
 
-  Children *children = GetComponent(ecs, e, Children);
-  if (children)
-    for (Entity i = 0; i < children->count; i++)
-      EntitySetVisible(ecs, children->list[i], visible);
+  if (visible)
+    EntityForEachChild(ecs, e, ShowChildScript);
+  else
+    EntityForEachChild(ecs, e, HideChildScript);
 }
 
 uint8_t EntityIsVisible(ECS *ecs, Entity e) {
@@ -68,7 +74,7 @@ void FindByTagScript(ECS *ecs, Entity e) {
 
 Entity FindByTag(ECS *ecs, char *tag) {
   findtag = tag;
-  found = -1;
+  found = (Entity)-1;
   EcsForEachEntity(ecs, FindByTagScript);
   return found;
 }

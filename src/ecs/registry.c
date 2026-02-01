@@ -129,8 +129,15 @@ Component EcsRegisterComponent(ECS *ecs, char *name, size_t size) {
 }
 
 void EcsFreeComponents(ECS *ecs) {
-  while (ecs->comp_count)
-    free(ecs->components[--ecs->comp_count].list);
+  while (ecs->comp_count) {
+    Component id = --ecs->comp_count;
+    for (Entity e = 0; e < ecs->entity_count; ++e) {
+      void *dest = EcsGetComponent(ecs, e, id);
+      if (dest)
+        ecs->components[id].dtor(dest);
+    }
+    free(ecs->components[id].list);
+  }
   free(ecs->components);
   ecs->comp_count = 0;
 }
@@ -164,6 +171,7 @@ void EcsRemoveComponent(ECS *ecs, Entity e, Component id) {
 }
 
 void EcsComponentDestructor(ECS *ecs, Component id, void (*_dtor)(void *)) {
+  assert(id < ecs->comp_count && "Component does not exist!");
   ecs->components[id].dtor = _dtor;
 }
 
@@ -223,11 +231,11 @@ Signature EcsSignatureImpl(ECS *ecs, const char *str) {
 // ######### //
 
 void EcsAllocSystems(ECS *ecs) {
-  ecs->systems = calloc(EcsSystemLayers, sizeof(LayerSystems));
+  ecs->systems = calloc(EcsTotalLayers, sizeof(LayerSystems));
 }
 
 void EcsFreeSystems(ECS *ecs) {
-  for (int i = 0; i < EcsSystemLayers; i++)
+  for (int i = 0; i < EcsTotalLayers; i++)
     free(ecs->systems[i].list);
   free(ecs->systems);
 }
@@ -253,7 +261,7 @@ uint8_t EcsCanRun(ECS *ecs, System *system, Entity e, EcsLayer ly) {
     return EntityIsVisible(ecs, e);
 }
 
-void RunSystem(ECS *ecs, EcsLayer ly) {
+void EcsRunSystems(ECS *ecs, EcsLayer ly) {
   size_t len = ecs->systems[ly].size;
   for (size_t s = 0; s < len; s++) {
     for (Entity e = 0; e < ecs->entity_count; e++) {

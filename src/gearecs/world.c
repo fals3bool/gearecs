@@ -1,23 +1,26 @@
-#include <falsecs/scene.h>
-
-#include <stdlib.h>
+#include <gearecs/world.h>
 
 #ifdef PLATFORM_WEB
 #include <emscripten/emscripten.h>
 #endif
 
-GameScene SceneStart(uint16_t max_entities, Camera2D camera) {
+static float fixed_time; ///< Accumulator for fixed timestep integration
+static Color background; ///< Window background color
+
+ECS *EcsWorld(uint16_t max_entities, Camera2D camera) {
   ECS *ecs = EcsRegistry(max_entities);
 
   Component(ecs, EntityData);
   Component(ecs, Parent);
-  Component(ecs, Children);
+  // Component(ecs, Children);
+  // @see ecs/component/hierarchy to check component size
+  EcsRegisterComponent(ecs, "Children", sizeof(Entity) * 2 + sizeof(Entity *));
   Component(ecs, Transform2);
   Component(ecs, Camera2D);
   Component(ecs, Sprite);
   Component(ecs, Behaviour);
-  Component collider_id = Component(ecs, Collider);
-  EcsComponentDestructor(ecs, collider_id, ColliderDestructor);
+  Component(ecs, Collider);
+  ComponentDtor(ecs, Collider, ColliderDestructor);
   Component(ecs, CollisionListener);
   Component(ecs, RigidBody);
 
@@ -31,7 +34,7 @@ GameScene SceneStart(uint16_t max_entities, Camera2D camera) {
   System(ecs, BehaviourRenderSystem, EcsOnRender, Behaviour);
   System(ecs, BehaviourGuiSystem, EcsOnGui, Behaviour);
 
-  System(ecs, HierarchyTransform, EcsOnUpdate, Transform2, Children);
+  System(ecs, HierarchyTransformSystem, EcsOnUpdate, Transform2, Parent);
   System(ecs, TransformColliderSystem, EcsOnUpdate, Transform2, Collider);
   System(ecs, CollisionSystem, EcsOnUpdate, Transform2, Collider);
 
@@ -40,47 +43,43 @@ GameScene SceneStart(uint16_t max_entities, Camera2D camera) {
 
   System(ecs, SpriteSystem, EcsOnRender, Transform2, Sprite);
 
-  return (GameScene){ecs, (Color){23, 28, 29, 255}, 0};
+  background = (Color){23, 28, 29, 255};
+  return ecs;
 }
 
-void GameGenericLoop(void *scene) {
-  GameScene *gs = (GameScene *)scene;
+void GameGenericLoop(void *world) {
+  ECS *ecs = (ECS *)world;
 
-  RunSystem(gs->ecs, EcsOnUpdate);
-  RunSystem(gs->ecs, EcsOnLateUpdate);
+  EcsRunSystems(ecs, EcsOnUpdate);
+  EcsRunSystems(ecs, EcsOnLateUpdate);
 
-  gs->fixed_time += GetFrameTime();
-  while (gs->fixed_time >= FIXED_DELTATIME) {
-    RunSystem(gs->ecs, EcsOnFixedUpdate);
-    gs->fixed_time -= FIXED_DELTATIME;
+  fixed_time += GetFrameTime();
+  while (fixed_time >= FIXED_DELTATIME) {
+    EcsRunSystems(ecs, EcsOnFixedUpdate);
+    fixed_time -= FIXED_DELTATIME;
   }
 
   BeginDrawing();
-  ClearBackground(gs->background);
+  ClearBackground(background);
 
-  Camera2D *cam = GetComponent(gs->ecs, 0, Camera2D);
+  Camera2D *cam = GetComponent(ecs, 0, Camera2D);
   BeginMode2D(*cam);
-  RunSystem(gs->ecs, EcsOnRender);
+  EcsRunSystems(ecs, EcsOnRender);
   EndMode2D();
 
-  RunSystem(gs->ecs, EcsOnGui);
+  EcsRunSystems(ecs, EcsOnGui);
   EndDrawing();
 }
 
-void SceneLoop(GameScene *scene) {
-  RunSystem(scene->ecs, EcsOnStart);
+void EcsLoop(ECS *world) {
+  if (!world)
+    return;
+  EcsRunSystems(world, EcsOnStart);
 #ifdef PLATFORM_WEB
   emscripten_set_main_loop_arg(GameGenericLoop, scene, 0, 1);
 #else
   while (!WindowShouldClose()) {
-    GameGenericLoop(scene);
+    GameGenericLoop(world);
   }
 #endif
-}
-
-void SceneClean(GameScene *scene) {
-  if (scene->ecs == NULL)
-    return;
-  EcsFree(scene->ecs);
-  scene->ecs = NULL;
 }
