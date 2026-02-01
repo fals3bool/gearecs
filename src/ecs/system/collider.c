@@ -135,7 +135,7 @@ void CollisionSystem(ECS *ecs, Entity self) {
   Collider *ca = GetComponent(ecs, self, Collider);
   RigidBody *ra = GetComponent(ecs, self, RigidBody);
 
-  Signature mask = EcsSignature(ecs, Transform2) & EcsSignature(ecs, Collider);
+  Signature mask = EcsSignature(ecs, Transform2, Collider);
   for (Entity other = self + 1; other < EcsEntityCount(ecs); ++other) {
     if (!EcsHasComponent(ecs, other, mask))
       continue;

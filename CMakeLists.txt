@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25) #minumum for raylib
-project(falsecs C)
+project(gearecs C)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/examples)
 set(CMAKE_C_STANDARD 11)
@@ -52,11 +52,11 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(raylib)
 
 file(GLOB_RECURSE SRC CONFIGURE_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/src/*.c")
-set(FALSECS_HEADERS "${CMAKE_CURRENT_LIST_DIR}/include/")
+set(INLCUDE "${CMAKE_CURRENT_LIST_DIR}/include")
 
 add_library(${PROJECT_NAME} STATIC ${SRC})
 target_include_directories(${PROJECT_NAME}
-  PUBLIC $<BUILD_INTERFACE:${FALSECS_HEADERS}>
+  PUBLIC $<BUILD_INTERFACE:${INLCUDE}>
   $<INSTALL_INTERFACE:include>)
 target_link_libraries(${PROJECT_NAME} raylib)
 

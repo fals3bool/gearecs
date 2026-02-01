@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-void printTree(ECS *ecs, Entity e) { printf("^\n[%d]\n", e); }
+void printID(ECS *ecs, Entity e) { printf(" - [%d]\n", e); }
 
 void printHierarchy(ECS *ecs, Entity e) {
   Parent *parent = GetComponent(ecs, e, Parent);
@@ -14,8 +14,7 @@ void printHierarchy(ECS *ecs, Entity e) {
     printf("Parent -> %d\n", parent->entity);
   if (children) {
     printf("Children:\n");
-    for (Entity e = 0; e < children->count; e++)
-      printf(" -> %d\n", children->list[e]);
+    EntityForEachChild(ecs, e, printID);
   }
 
   Transform2 *t = GetComponent(ecs, e, Transform2);
@@ -29,11 +28,12 @@ int main(void) {
 
   ECS *ecs = EcsRegistry(32);
   Component(ecs, Parent);
-  Component(ecs, Children);
+  // Component(ecs, Children);
+  EcsRegisterComponent(ecs, "Children", sizeof(Entity *) + sizeof(Entity) * 2);
   Component(ecs, EntityData);
   Component(ecs, Transform2);
 
-  System(ecs, HierarchyTransform, 0, Transform2, Children);
+  System(ecs, HierarchyTransformSystem, 0, Transform2, Parent);
   SystemGlobal(ecs, printHierarchy, 0);
 
   Entity A = EcsEntity(ecs);
@@ -72,18 +72,14 @@ int main(void) {
   // Deactivated entities won't be read by systems
   EntitySetActive(ecs, B, true); // All entities are now active
 
-  RunSystem(ecs, 0);
-
-  printf("for each:\n");
-  EntityForEachChild(ecs, B, printTree);
-  printf("for each recursive:\n");
-  EntityForEachChildRecursive(ecs, B, printTree);
+  EcsRunSystems(ecs, 0);
 
   printf("Destroy B id:%d\n\n", B);
   EntityDestroy(ecs, B); // destroy B, remove parent from C
   // EntityDestroyRecursive(ecs, C); // destroy C and children...
 
-  RunSystem(ecs, 0);
+  EcsRunSystems(ecs, 0);
+  printHierarchy(ecs, C);
 
   return 0;
 }

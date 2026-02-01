@@ -1,19 +1,14 @@
 #include <ecs/component.h>
 #include <ecs/system.h>
 
-#include <raymath.h>
-
-void HierarchyTransform(ECS *ecs, Entity e) {
-  Children *children = GetComponent(ecs, e, Children);
+void HierarchyTransformSystem(ECS *ecs, Entity e) {
+  Parent *p = GetComponent(ecs, e, Parent);
   Transform2 *t = GetComponent(ecs, e, Transform2);
-
-  for (Entity i = 0; i < children->count; i++) {
-    Transform2 *ti = GetComponent(ecs, children->list[i], Transform2);
-    if (!ti)
-      continue;
-    ti->position = Vector2Add(t->position, ti->localPosition);
-    ti->scale =
-        (Vector2){t->scale.x * ti->localScale.x, t->scale.y * ti->localScale.y};
-    ti->rotation = t->rotation + ti->localRotation;
-  }
+  Transform2 *tp = GetComponent(ecs, p->entity, Transform2);
+  if (!tp)
+    return;
+  t->position = Vector2Add(tp->position, t->localPosition);
+  t->scale =
+      (Vector2){tp->scale.x * t->localScale.x, tp->scale.y * t->localScale.y};
+  t->rotation = tp->rotation + t->localRotation;
 }

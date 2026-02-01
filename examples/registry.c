@@ -47,9 +47,9 @@ int main(void) {
   System(world, Print, 1, Position);
 
   // RUN SYSTEMS UNDER EXECUTION LAYERS
-  RunSystem(world, 1);
-  RunSystem(world, 0);
-  RunSystem(world, 1);
+  EcsRunSystems(world, 1);
+  EcsRunSystems(world, 0);
+  EcsRunSystems(world, 1);
 
   EcsFree(world);
 
