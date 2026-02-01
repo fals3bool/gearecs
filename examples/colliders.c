@@ -1,4 +1,6 @@
+#include "raylib.h"
 #include <gearecs/world.h>
+#include <service/layers.h>
 
 #include <stdio.h>
 
@@ -56,6 +58,9 @@ void ScriptGui(ECS *ecs, Entity self) {
   DrawText("Transform: [ARROWS]", 10, 10, 16, WHITE);
   DrawText("Impulse: [WASD]", 10, 30, 16, WHITE);
   DrawText("Switch RigidBody: [SPACE]", 10, 50, 16, WHITE);
+  char fpstxt[10];
+  snprintf(fpstxt, 10, "FPS: %d", GetFPS());
+  DrawText(fpstxt, SCREEN_W - 90, 10, 16, WHITE);
 }
 
 void ScriptShowData(ECS *ecs, Entity self) {
@@ -98,6 +103,10 @@ void OnCollisionHandler(ECS *ecs, CollisionEvent *event) {
 }
 
 void LoadScene(ECS *ecs) {
+
+  AddLayer(ecs, "player");
+  AddLayer(ecs, "alone");
+  CleanupCollisionLayer(ecs, "alone");
 
   // COLLIDER: [SOLID]
   // BODY: [NONE]
@@ -143,8 +152,7 @@ void LoadScene(ECS *ecs) {
   Entity E = EcsEntity(ecs);
   AddComponent(ecs, E, Transform2, TransformPos(250, 100));
   Collider colE = ColliderSolid(4, 24);
-  ColliderSetLayer(&colE, 1);
-  ColliderEnableLayer(&colE, 1);
+  ColliderSetLayer(ecs, &colE, "alone");
   AddComponentByRef(ecs, E, Collider, colE);
   AddComponent(ecs, E, RigidBody, RigidBodyStatic);
   AddScript(ecs, E, ScriptShowData, EcsOnRender);
@@ -153,6 +161,7 @@ void LoadScene(ECS *ecs) {
   Entity P = EcsEntity(ecs);
   AddComponent(ecs, P, Transform2, TransformZero);
   Collider colP = ColliderSolid(3, 22);
+  ColliderSetLayer(ecs, &colP, "player");
   AddComponentByRef(ecs, P, Collider, colP);
   AddComponent(ecs, P, CollisionListener, {OnCollisionHandler});
   AddComponent(ecs, P, RigidBody, RigidBodyKinematic(50, 1.5f));
@@ -160,6 +169,8 @@ void LoadScene(ECS *ecs) {
   AddScript(ecs, P, ScriptImpulse, EcsOnFixedUpdate);
   AddScript(ecs, P, ScriptShowData, EcsOnRender);
   AddScript(ecs, P, ScriptGui, EcsOnGui);
+
+  DebugCollisionLayers(ecs);
 
   System(ecs, DebugColliderSystem, EcsOnRender, Transform2, Collider);
 }

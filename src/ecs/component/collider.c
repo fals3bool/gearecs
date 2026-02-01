@@ -1,5 +1,6 @@
 #include <ecs/component.h>
 
+#include <service/layers.h>
 #include <stdlib.h>
 
 Collider ColliderCreate(int vertices, float radius, bool solid) {
@@ -44,26 +45,4 @@ void ColliderDestructor(void *_self) {
   Collider *self = (Collider *)_self;
   free(self->md);
   free(self->vx);
-}
-
-void ColliderSetLayer(Collider *c, uint8_t layer) { c->layer = layer % 64; }
-
-void ColliderEnableLayer(Collider *c, uint8_t layer) {
-  c->collisionMask |= (1u << (layer % 64));
-}
-
-void ColliderDisableLayer(Collider *c, uint8_t layer) {
-  c->collisionMask |= ~(1u << (layer % 64));
-}
-
-void ColliderDisableAllLayers(Collider *c) { c->collisionMask = 0; }
-
-bool ColliderHasLayerEnabled(const Collider *c, uint8_t layer) {
-  Signature mask = (1u << (layer % 64));
-  return (c->collisionMask & mask) == mask;
-}
-
-bool CanCollide(Collider *c1, Collider *c2) {
-  return (c1->collisionMask == 0 || ColliderHasLayerEnabled(c1, c2->layer)) &&
-         (c2->collisionMask == 0 || ColliderHasLayerEnabled(c2, c1->layer));
 }

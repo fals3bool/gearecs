@@ -1,7 +1,7 @@
 #include <ecs/component.h>
 #include <ecs/system.h>
 
-#include <raymath.h>
+#include <service/layers.h>
 
 void TransformColliderSystem(ECS *ecs, Entity e) {
   Transform2 *t = GetComponent(ecs, e, Transform2);
@@ -147,8 +147,8 @@ void CollisionSystem(ECS *ecs, Entity self) {
     RigidBody *rb = GetComponent(ecs, other, RigidBody);
 
     Collision collision;
-    uint8_t overlap =
-        CanCollide(ca, cb) && CollisionSat(ta, ca, tb, cb, &collision);
+    uint8_t overlap = LayerIncludesLayer(ecs, ca->layer, cb->layer) &&
+                      CollisionSat(ta, ca, tb, cb, &collision);
     if (overlap)
       HandleCollisionEvents(ecs, self, other, &collision);
 

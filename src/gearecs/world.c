@@ -1,5 +1,7 @@
 #include <gearecs/world.h>
 
+#include <service/layers.h>
+
 #ifdef PLATFORM_WEB
 #include <emscripten/emscripten.h>
 #endif
@@ -41,6 +43,8 @@ ECS *EcsWorld(uint16_t max_entities, Camera2D camera) {
 
   System(ecs, SpriteSystem, EcsOnRender, Transform2, Sprite);
 
+  StartLayerService(ecs);
+
   background = (Color){23, 28, 29, 255};
   return ecs;
 }
@@ -80,4 +84,5 @@ void EcsLoop(ECS *world) {
     GameGenericLoop(world);
   }
 #endif
+  StopLayerService(world);
 }

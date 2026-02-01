@@ -1,5 +1,7 @@
 #include <gearecs.h>
 
+#include <service/layers.h>
+
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 450
 #define SPEED 900

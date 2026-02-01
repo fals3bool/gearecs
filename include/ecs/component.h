@@ -197,8 +197,7 @@ typedef struct {
   bool overlap;     ///< Collision overlap flag (internal)
   bool solid;       ///< true for solid, false for trigger
 
-  uint8_t layer;           ///< Collision layer (0-7)
-  Signature collisionMask; ///< Bitmask of layers this collider can collide with
+  uint8_t layer; ///< Collision layer
 } Collider;
 
 /**
@@ -272,68 +271,6 @@ Collider ColliderRect(Rectangle rect, bool solid);
  * @param self Pointer to Collider instance
  */
 void ColliderDestructor(void *self);
-
-/**
- * Sets the collision layer for a collider.
- *
- * Collision layers allow selective interaction between groups of
- * colliders (e.g., player enemies, projectiles, walls).
- *
- * @param c Collider to modify
- * @param layer Layer number (0-64)
- */
-void ColliderSetLayer(Collider *c, uint8_t layer);
-
-/**
- * Enables collision with a specific layer.
- *
- * Adds the specified layer to the collision mask. The collider will
- * check for collisions with colliders on this layer.
- *
- * If no layer is enabled, it will collide with everything.
- *
- * @param c Collider to modify
- * @param layer Layer number to enable (0-64)
- */
-void ColliderEnableLayer(Collider *c, uint8_t layer);
-
-/**
- * Disables collision with a specific layer.
- *
- * Removes the specified layer from the collision mask.
- *
- * @param c Collider to modify
- * @param layer Layer number to disable (0-64)
- */
-void ColliderDisableLayer(Collider *c, uint8_t layer);
-
-/**
- * Disables collision with all layers.
- *
- * Clears the collision mask, making the collider collide
- * with anything.
- *
- * @param c Collider to modify
- */
-void ColliderDisableAllLayers(Collider *c);
-
-/**
- * Checks if collision is enabled for a specific layer.
- *
- * @param c Collider to check
- * @param layer Layer number to check (0-64)
- * @return true if enabled, false if disabled
- */
-bool ColliderHasLayerEnabled(const Collider *c, uint8_t layer);
-
-/**
- * Checks if two colliders can collide based on their layers.
- *
- * @param c1 First collider
- * @param c2 Second collider
- * @return true if colliders can interact, false otherwise
- */
-bool CanCollide(Collider *c1, Collider *c2);
 
 /**
  * Collision data structure.
