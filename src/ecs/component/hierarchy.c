@@ -2,12 +2,6 @@
 
 #include <stdlib.h>
 
-struct Children {
-  Entity *list;
-  Entity count;
-  Entity allocated;
-};
-
 // Every parent operation will call the children operation with swapped entities
 // and change the parent component.
 //

@@ -590,10 +590,17 @@ typedef struct {
  * system to manage parent-child relationships and enable operations
  * on all children of an entity.
  *
+ * @note Using this component's fields is deprecated. Use foreach functions
+ * instead.
+ *
  * @see EntityForEachChild()
  * @see EntityForEachChildRecursive()
  */
-typedef struct Children Children;
+typedef struct {
+  Entity *list;
+  Entity count;
+  Entity allocated;
+} Children;
 
 /**
  * Sets a parent for an entity in the hierarchy.

@@ -28,8 +28,7 @@ int main(void) {
 
   ECS *ecs = EcsRegistry(32);
   Component(ecs, Parent);
-  // Component(ecs, Children);
-  EcsRegisterComponent(ecs, "Children", sizeof(Entity *) + sizeof(Entity) * 2);
+  Component(ecs, Children);
   Component(ecs, EntityData);
   Component(ecs, Transform2);
 

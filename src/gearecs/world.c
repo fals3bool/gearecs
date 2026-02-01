@@ -12,9 +12,7 @@ ECS *EcsWorld(uint16_t max_entities, Camera2D camera) {
 
   Component(ecs, EntityData);
   Component(ecs, Parent);
-  // Component(ecs, Children);
-  // @see ecs/component/hierarchy to check component size
-  EcsRegisterComponent(ecs, "Children", sizeof(Entity) * 2 + sizeof(Entity *));
+  Component(ecs, Children);
   Component(ecs, Transform2);
   Component(ecs, Camera2D);
   Component(ecs, Sprite);
