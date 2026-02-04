@@ -19,13 +19,12 @@ ECS *EcsWorld(uint16_t max_entities, Camera2D camera) {
   Component(ecs, Camera2D);
   Component(ecs, Sprite);
   Component(ecs, Behaviour);
-  Component(ecs, Collider);
-  ComponentDtor(ecs, Collider, ColliderDestructor);
+  ComponentDynamic(ecs, Collider, ColliderDestructor);
   Component(ecs, CollisionListener);
   Component(ecs, RigidBody);
 
   Entity camEntity = EcsEntity(ecs);
-  AddComponentByRef(ecs, camEntity, Camera2D, camera);
+  AddComponent(ecs, camEntity, Camera2D, camera);
 
   System(ecs, BehaviourStartSystem, EcsOnStart, Behaviour);
   System(ecs, BehaviourUpdateSystem, EcsOnUpdate, Behaviour);

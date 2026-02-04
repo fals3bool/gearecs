@@ -113,7 +113,8 @@ void EcsForEachEntity(ECS *ecs, Script script) {
 //  COMPONENT  //
 // ########### //
 
-Component EcsRegisterComponent(ECS *ecs, char *name, size_t size) {
+Component EcsRegisterComponent(ECS *ecs, char *name, size_t size,
+                               void (*dtor)(void *)) {
   Component id = ecs->comp_count++;
   if (id == 0)
     ecs->components = malloc(sizeof(ComponentList));
@@ -123,7 +124,7 @@ Component EcsRegisterComponent(ECS *ecs, char *name, size_t size) {
 
   ecs->components[id].name = name;
   ecs->components[id].size = size;
-  ecs->components[id].dtor = NULL;
+  ecs->components[id].dtor = dtor;
   ecs->components[id].list = calloc(ecs->max_entities, size);
   return id;
 }

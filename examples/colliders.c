@@ -112,8 +112,7 @@ void LoadScene(ECS *ecs) {
   // BODY: [NONE]
   Entity A = EcsEntity(ecs);
   AddComponent(ecs, A, Transform2, TransformPos(-250, 100));
-  Collider colA = ColliderSolid(5, 16);
-  AddComponentByRef(ecs, A, Collider, colA);
+  AddComponent(ecs, A, Collider, ColliderSolid(5, 18));
   AddComponent(ecs, A, CollisionListener, {OnCollisionHandler});
   AddScript(ecs, A, ScriptShowData, EcsOnRender);
 
@@ -121,8 +120,7 @@ void LoadScene(ECS *ecs) {
   // BODY: [NONE]
   Entity B = EcsEntity(ecs);
   AddComponent(ecs, B, Transform2, TransformPos(-150, -100));
-  Collider colB = ColliderTrigger(4, 20);
-  AddComponentByRef(ecs, B, Collider, colB);
+  AddComponent(ecs, B, Collider, ColliderTrigger(4, 20));
   AddComponent(ecs, B, CollisionListener, {OnCollisionHandler});
   AddScript(ecs, B, ScriptShowData, EcsOnRender);
 
@@ -130,19 +128,17 @@ void LoadScene(ECS *ecs) {
   // BODY: [DYNAMIC]
   Entity C = EcsEntity(ecs);
   AddComponent(ecs, C, Transform2, TransformPos(0, 100));
-  Collider colC = ColliderSolid(6, 18);
-  AddComponentByRef(ecs, C, Collider, colC);
+  AddComponent(ecs, C, Collider, ColliderSolid(5, 22));
   RigidBody rbC = RigidBodyDynamic(80, 1.2f);
   rbC.gravity = false;
-  AddComponentByRef(ecs, C, RigidBody, rbC);
+  AddComponent(ecs, C, RigidBody, rbC);
   AddScript(ecs, C, ScriptShowData, EcsOnRender);
 
   // COLLIDER: [SOLID]
   // BODY: [STATIC]
   Entity D = EcsEntity(ecs);
   AddComponent(ecs, D, Transform2, TransformPos(150, -100));
-  Collider colD = ColliderSolid(7, 24);
-  AddComponentByRef(ecs, D, Collider, colD);
+  AddComponent(ecs, D, Collider, ColliderSolid(5, 14));
   AddComponent(ecs, D, RigidBody, RigidBodyStatic);
   AddScript(ecs, D, ScriptShowData, EcsOnRender);
 
@@ -151,9 +147,9 @@ void LoadScene(ECS *ecs) {
   // ANOTHER LAYER
   Entity E = EcsEntity(ecs);
   AddComponent(ecs, E, Transform2, TransformPos(250, 100));
-  Collider colE = ColliderSolid(4, 24);
-  ColliderSetLayer(ecs, &colE, "alone");
-  AddComponentByRef(ecs, E, Collider, colE);
+  Collider solid = ColliderSolid(5, 20);
+  ColliderSetLayer(ecs, &solid, "alone");
+  AddComponent(ecs, E, Collider, solid);
   AddComponent(ecs, E, RigidBody, RigidBodyStatic);
   AddScript(ecs, E, ScriptShowData, EcsOnRender);
 
@@ -162,7 +158,7 @@ void LoadScene(ECS *ecs) {
   AddComponent(ecs, P, Transform2, TransformZero);
   Collider colP = ColliderSolid(3, 22);
   ColliderSetLayer(ecs, &colP, "player");
-  AddComponentByRef(ecs, P, Collider, colP);
+  AddComponent(ecs, P, Collider, colP);
   AddComponent(ecs, P, CollisionListener, {OnCollisionHandler});
   AddComponent(ecs, P, RigidBody, RigidBodyKinematic(50, 1.5f));
   AddScript(ecs, P, ScriptMove, EcsOnUpdate);

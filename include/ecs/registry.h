@@ -1,9 +1,9 @@
 #ifndef ECS_REGISTRY_H
 #define ECS_REGISTRY_H
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdbool.h>
 
 /**
  * @file registry.h
@@ -282,54 +282,40 @@ bool EntityIsVisible(ECS *ecs, Entity e);
  *
  * Example: Component(world, Position);
  */
-#define Component(ecs, C) EcsRegisterComponent(ecs, #C, sizeof(C))
+#define Component(ecs, C) EcsRegisterComponent(ecs, #C, sizeof(C), NULL)
 
 /**
- * Registers a destructor function for component cleanup.
+ * Registers a new component with destructor function for component cleanup.
  *
- * Called when components are removed or entities are destroyed.
- * Useful for components that allocate memory or need cleanup.
+ * Useful for components that allocate dynamic memory or need cleanup.
  *
  * @param ecs Registry containing the component
  * @param C Component type name
  * @param dtor Destructor function pointer
  *
- * Example: ComponentDtor(world, TextureData, freeTexture);
+ * Example: ComponentDynamic(world, TextureData, freeTexture);
  */
-#define ComponentDtor(ecs, C, dtor)                                            \
-  EcsComponentDestructor(ecs, EcsCID(ecs, #C), dtor);
+#define ComponentDynamic(ecs, C, dtor)                                         \
+  EcsRegisterComponent(ecs, #C, sizeof(C), dtor)
 
 /**
  * Adds a component to an entity with initialization values.
  *
  * Creates and initializes a component instance for the specified entity.
- * Uses struct initialization syntax for convenience.
+ * Supports struct initialization syntax and pre-defined instances.
  *
  * @param ecs Registry containing the entity
  * @param entity Entity to add component to
  * @param C Component type name
- * @param ... Initialization values (struct fields)
+ * @param ... Initialization value
  *
  * Example: AddComponent(world, player, Position, {10.0f, 20.0f});
  */
 #define AddComponent(ecs, entity, C, ...)                                      \
-  EcsAddComponent(ecs, entity, EcsCID(ecs, #C), &(C)__VA_ARGS__)
-
-/**
- * Adds a component by reference to existing data.
- *
- * Copies data from an existing variable instead of using initialization.
- * Useful for complex initialization or reusing component instances.
- *
- * @param ecs Registry containing the entity
- * @param entity Entity to add component to
- * @param C Component type name
- * @param ref Variable containing component data
- *
- * Example: Position pos = {x, y}; AddComponentByRef(world, e, Position, pos);
- */
-#define AddComponentByRef(ecs, entity, C, obj)                                 \
-  EcsAddComponent(ecs, entity, EcsCID(ecs, #C), &obj)
+  do {                                                                         \
+    C _tmp = __VA_ARGS__;                                                      \
+    EcsAddComponent(ecs, entity, EcsCID(ecs, #C), &_tmp);                      \
+  } while (0)
 
 /**
  * Retrieves a component from an entity.
@@ -375,14 +361,17 @@ bool EntityIsVisible(ECS *ecs, Entity e);
  * Registers a component type manually.
  *
  * Low-level function used by the Component() macro. Registers component
- * metadata and allocates storage for all entities.
+ * metadata and allocates storage for all entities with a destructor function
+ * for cleanup.
  *
  * @param ecs Registry to register component in
  * @param name Component type name for identification
  * @param size Size of component structure in bytes
+ * @param dtor A destructor function
  * @return Component ID: EcsID
  */
-Component EcsRegisterComponent(ECS *ecs, char *name, size_t size);
+Component EcsRegisterComponent(ECS *ecs, char *name, size_t size,
+                               void (*dtor)(void *));
 
 /**
  * Adds component data to an entity using raw data pointer.
@@ -421,18 +410,6 @@ void EcsRemoveComponent(ECS *ecs, Entity e, Component id);
  * @return Pointer to component data, or NULL if not found
  */
 void *EcsGetComponent(ECS *ecs, Entity e, Component id);
-
-/**
- * Registers a destructor function for a component type.
- *
- * Called automatically when components are removed or entities are destroyed.
- * Useful for cleanup of allocated resources.
- *
- * @param ecs Registry to modify
- * @param id Component ID to register destructor for
- * @param _dtor Destructor function pointer
- */
-void EcsComponentDestructor(ECS *ecs, Component id, void (*_dtor)(void *));
 
 /**
  * Checks if an entity has all components specified in a signature.
@@ -489,7 +466,7 @@ typedef enum {
   EcsOnFixedUpdate, ///< Fixed timestep physics/consistent logic
   EcsOnRender,      ///< Rendering operations
   EcsOnGui,         ///< UI and overlay rendering
-  EcsTotalLayers   ///< Total number of system layers
+  EcsTotalLayers    ///< Total number of system layers
 } EcsLayer;
 
 /**
