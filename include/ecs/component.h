@@ -273,6 +273,16 @@ Collider ColliderRect(Rectangle rect, bool solid);
 void ColliderDestructor(void *self);
 
 /**
+ * Destructor for Children component.
+ *
+ * Automatically frees child list array memory when Children component
+ * is removed or entity is destroyed. Registered with ComponentDtor().
+ *
+ * @param self Pointer to Children instance
+ */
+void ChildrenDestructor(void *self);
+
+/**
  * Collision data structure.
  *
  * Contains information about collision normal and penetration depth

@@ -293,6 +293,8 @@ bool EntityIsVisible(ECS *ecs, Entity e);
  * @param C Component type name
  * @param dtor Destructor function pointer
  *
+ * @note When creating a cleanup function, never free the component itself
+ *
  * Example: ComponentDynamic(world, TextureData, freeTexture);
  */
 #define ComponentDynamic(ecs, C, dtor)                                         \
@@ -412,7 +414,19 @@ void EcsRemoveComponent(ECS *ecs, Entity e, Component id);
 void *EcsGetComponent(ECS *ecs, Entity e, Component id);
 
 /**
- * Checks if an entity has all components specified in a signature.
+ * @brief Checks if an entity has the specified component.
+ *
+ * Used by the ecs core before removing or cleaning up.
+ *
+ * @param ecs Registry containing the entity
+ * @param e Entity to check
+ * @param id Component ID
+ * @return true if entity has the component, false otherwise.
+ */
+bool EcsHasComponent(ECS *ecs, Entity e, Component id);
+
+/**
+ * @brief Checks if an entity has all components specified in a signature.
  *
  * Used by systems to filter entities. Returns true only if the entity
  * has ALL components in the signature mask.
@@ -422,7 +436,7 @@ void *EcsGetComponent(ECS *ecs, Entity e, Component id);
  * @param mask Component signature to test against
  * @return true if entity has all components, false otherwise
  */
-bool EcsHasComponent(ECS *ecs, Entity e, Signature mask);
+bool EcsHasComponents(ECS *ecs, Entity e, Signature mask);
 
 /**
  * Finds component ID by component name.
@@ -502,6 +516,8 @@ Signature EcsSignatureImpl(ECS *ecs, const char *str);
  * assigns it to a specific execution layer. The system will only run
  * on entities that have ALL specified components.
  *
+ * @note The maximum component number per system is 8.
+ *
  * @param ecs Registry to add system to
  * @param script Function to execute for matching entities
  * @param layer Execution layer (EcsOnUpdate, etc.)
@@ -510,6 +526,7 @@ Signature EcsSignatureImpl(ECS *ecs, const char *str);
  * Example: System(ecs, MovePlayer, EcsOnUpdate, Position, Velocity);
  *
  * @see EcsRunSystems()
+ * @see EcsAddSystem() to manually add a system with more than 8 components.
  */
 #define System(ecs, script, layer, ...)                                        \
   EcsAddSystem(ecs, script, layer, EcsSignature(ecs, __VA_ARGS__))

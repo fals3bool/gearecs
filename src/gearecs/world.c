@@ -14,7 +14,7 @@ ECS *EcsWorld(uint16_t max_entities, Camera2D camera) {
 
   Component(ecs, EntityData);
   Component(ecs, Parent);
-  Component(ecs, Children);
+  ComponentDynamic(ecs, Children, ChildrenDestructor);
   Component(ecs, Transform2);
   Component(ecs, Camera2D);
   Component(ecs, Sprite);

@@ -35,16 +35,22 @@ bool EntitySetChild(ECS *ecs, Entity e, Entity c) {
         return false;
 
     // add to existing component, realloc if necessary
-    Entity i = children->count++;
-    if (children->count > children->allocated) {
-      children->allocated = children->allocated ? children->allocated * 2 : 4;
-      children->list =
-          realloc(children->list, sizeof(Entity) * children->allocated);
+    if (children->count >= children->allocated) {
+      size_t new_allocated = children->allocated ? children->allocated * 2 : 4;
+      Entity *new_list =
+          realloc(children->list, sizeof(Entity) * new_allocated);
+      if (!new_list) {
+        return false; // Reallocation failed
+      }
+      children->list = new_list;
+      children->allocated = new_allocated;
     }
-    children->list[i] = c;
+    children->list[children->count++] = c;
   } else {
     // add within a new component instance
     Entity *list = malloc(sizeof(Entity));
+    if (!list)
+      return false;
     list[0] = c;
     AddComponent(ecs, e, Children, {list, 1, 1});
   }
@@ -127,5 +133,15 @@ void EntityForEachChildRecursive(ECS *ecs, Entity e, Script s) {
   for (Entity i = 0; i < children->count; i++) {
     s(ecs, children->list[i]);
     EntityForEachChildRecursive(ecs, children->list[i], s);
+  }
+}
+
+void ChildrenDestructor(void *self) {
+  Children *children = (Children *)self;
+  if (children && children->list) {
+    free(children->list);
+    children->list = NULL;
+    children->count = 0;
+    children->allocated = 0;
   }
 }
