@@ -87,9 +87,8 @@ Entity EcsEntity(ECS *ecs) {
       return (Entity)-1;
     e = ecs->entity_count++;
   }
-  assert(e < ecs->max_entities &&
-         "Exceeded maximum number of entities or Entity is invalid (-1)");
-  ecs->entities[e] = 0; // signature
+  assert(e < ecs->max_entities && "Exceeded maximum number of entities");
+  ecs->entities[e] = 0; // signature // just in case
   return e;
 }
 
@@ -104,7 +103,6 @@ void EcsEntityFree(ECS *ecs, Entity e) {
   // Remove all components with proper cleanup
   for (Component c = 0; c < ecs->comp_count; c++)
     EcsRemoveComponent(ecs, e, c);
-  ecs->entities[e] = 0; // signature // just in case
 
   if (ecs->free_count < ecs->max_entities)
     ecs->free_entities[ecs->free_count++] = e;
@@ -178,8 +176,9 @@ void EcsFreeComponents(ECS *ecs) {
 }
 
 void EcsAddComponent(ECS *ecs, Entity e, Component id, void *data) {
-  if (e >= ecs->max_entities || id >= ecs->comp_count || id >= 64)
-    return; // TODO: is this check really necessary??
+  assert(e < ecs->max_entities && "Invalid entity");
+  assert(id < 64 && "Invalid component");
+  assert(id < ecs->comp_count && "Component does not exist");
 
   size_t size = ecs->components[id].size;
   void *dest = (uint8_t *)ecs->components[id].list + e * size;
@@ -207,8 +206,10 @@ void EcsRemoveComponent(ECS *ecs, Entity e, Component id) {
 }
 
 bool EcsHasComponent(ECS *ecs, Entity e, Component id) {
-  if (e >= ecs->max_entities || id >= ecs->comp_count || id >= 64)
-    return false;
+  assert(e < ecs->max_entities && "Invalid entity");
+  assert(id < 64 && "Invalid component");
+  assert(id < ecs->comp_count && "Component does not exist");
+
   if ((ecs->entities[e] & (1ULL << id)) == 0)
     return false;
   return true;
