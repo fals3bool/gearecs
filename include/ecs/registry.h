@@ -49,6 +49,13 @@ typedef struct Registry ECS;
 typedef uint16_t EcsID;
 
 /**
+ * Maximum ID value, never reached during a normal lifecycle.
+ *
+ * Returned by the api after an error.
+ */
+#define InvalidID ((EcsID) - 1)
+
+/**
  * An entity represents a general purpose object in the game world.
  *
  * Entities are defined by their components - an entity with no components

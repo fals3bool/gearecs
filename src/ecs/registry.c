@@ -84,7 +84,7 @@ Entity EcsEntity(ECS *ecs) {
     e = ecs->free_entities[--ecs->free_count];
   } else {
     if (ecs->entity_count >= ecs->max_entities)
-      return (Entity)-1;
+      return InvalidID;
     e = ecs->entity_count++;
   }
   assert(e < ecs->max_entities && "Exceeded maximum number of entities");
@@ -126,7 +126,7 @@ Component EcsRegisterComponent(ECS *ecs, char *name, size_t size,
                                void (*dtor)(void *)) {
   // maximum number of components for signatures
   if (ecs->comp_count >= 64)
-    return ecs->comp_count; // invalid ID
+    return InvalidID;
 
   Component id = ecs->comp_count;
   if (ecs->comp_count >= ecs->comp_alloc) {
@@ -139,7 +139,7 @@ Component EcsRegisterComponent(ECS *ecs, char *name, size_t size,
           realloc(ecs->components, sizeof(ComponentList) * new_alloc);
 
     if (!new_components)
-      return ecs->comp_count; // invalid ID
+      return InvalidID;
 
     ecs->components = new_components;
     ecs->comp_alloc = new_alloc;
@@ -148,7 +148,7 @@ Component EcsRegisterComponent(ECS *ecs, char *name, size_t size,
   // Allocate component data array
   void *component_list = calloc(ecs->max_entities, size);
   if (!component_list)
-    return ecs->comp_count; // invalid ID
+    return InvalidID;
 
   // If failed no free() is needed because comp_count didn't increased.
   ecs->comp_count++;
@@ -161,13 +161,14 @@ Component EcsRegisterComponent(ECS *ecs, char *name, size_t size,
 
 void EcsFreeComponents(ECS *ecs) {
   while (ecs->comp_count > 0) {
-    Component id = --ecs->comp_count;
+    Component id = ecs->comp_count - 1;
 
     for (Entity e = 0; e < ecs->entity_count; ++e)
       EcsRemoveComponent(ecs, e, id);
 
     free(ecs->components[id].list);
     ecs->components[id].list = NULL;
+    ecs->comp_count--;
   }
 
   free(ecs->components);
@@ -216,8 +217,7 @@ bool EcsHasComponent(ECS *ecs, Entity e, Component id) {
 }
 
 bool EcsHasComponents(ECS *ecs, Entity e, Signature mask) {
-  if (e >= ecs->max_entities)
-    return false;
+  assert(e < ecs->max_entities && "Invalid entity");
 
   return (ecs->entities[e] & mask) == mask;
 }
@@ -227,7 +227,7 @@ Component EcsCID(ECS *ecs, char *name) {
     if (strcmp(ecs->components[id].name, name) == 0)
       return id;
   }
-  return ecs->comp_count;
+  return InvalidID;
 }
 
 // ########### //
@@ -265,8 +265,8 @@ Signature EcsSignatureImpl(ECS *ecs, const char *str) {
   size_t n = split(buffer, components, 8);
   for (size_t i = 0; i < n; i++) {
     Component cid = EcsCID(ecs, components[i]);
-    if (cid < 64) // overflow signature bits
-      mask |= (1ULL << cid);
+    assert(cid < 64 && "Component not found"); // overflow signature bits
+    mask |= (1ULL << cid);
   }
   return mask;
 }

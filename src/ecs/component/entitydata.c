@@ -1,3 +1,4 @@
+#include "ecs/registry.h"
 #include <ecs/component.h>
 
 #include <string.h>
@@ -74,7 +75,7 @@ void FindByTagScript(ECS *ecs, Entity e) {
 
 Entity FindByTag(ECS *ecs, char *tag) {
   findtag = tag;
-  found = (Entity)-1;
+  found = InvalidID;
   EcsForEachEntity(ecs, FindByTagScript);
   return found;
 }
