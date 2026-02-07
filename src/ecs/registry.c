@@ -154,7 +154,7 @@ bool EntityIsVisible(ECS *ecs, Entity e) { return ecs->entities[e].visible; }
 //  COMPONENT  //
 // ########### //
 
-Component EcsRegisterComponent(ECS *ecs, char *name, size_t size,
+Component EcsComponent(ECS *ecs, char *name, size_t size,
                                void (*dtor)(void *)) {
   // maximum number of components for signatures
   if (ecs->comp_count >= 64)

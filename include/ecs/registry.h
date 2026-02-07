@@ -46,8 +46,6 @@ typedef struct Registry ECS;
  * A component represents one aspect of an entity (position, velocity, health,
  * etc.).
  *
- * Components must be registered before use with Component()
- *
  * @see Component() for registration
  * @see AddComponent() to attach component to entities
  * @see RemoveComponent() to remove component from entities
@@ -285,7 +283,7 @@ bool EntityIsVisible(ECS *ecs, Entity e);
  *
  * Example: Component(world, Position);
  */
-#define Component(ecs, C) EcsRegisterComponent(ecs, #C, sizeof(C), NULL)
+#define Component(ecs, C) EcsComponent(ecs, #C, sizeof(C), NULL)
 
 /**
  * Registers a new component with destructor function for component cleanup.
@@ -301,7 +299,7 @@ bool EntityIsVisible(ECS *ecs, Entity e);
  * Example: ComponentDynamic(world, TextureData, freeTexture);
  */
 #define ComponentDynamic(ecs, C, dtor)                                         \
-  EcsRegisterComponent(ecs, #C, sizeof(C), dtor)
+  EcsComponent(ecs, #C, sizeof(C), dtor)
 
 /**
  * Adds a component to an entity with initialization values.
@@ -375,7 +373,7 @@ bool EntityIsVisible(ECS *ecs, Entity e);
  * @param dtor A destructor function
  * @return Component ID: EcsID
  */
-Component EcsRegisterComponent(ECS *ecs, char *name, size_t size,
+Component EcsComponent(ECS *ecs, char *name, size_t size,
                                void (*dtor)(void *));
 
 /**

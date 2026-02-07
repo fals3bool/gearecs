@@ -1,6 +1,6 @@
 # GearECS
 
-A lightweight Entity-Component-System (ECS) library for C game development, built on top of raylib.
+A lightweight Entity Component System (ECS) library for C game development, built on top of raylib.
 GearECS provides a modern, data-oriented architecture for creating efficient and scalable 2D games.
 
 ## Features
