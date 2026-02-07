@@ -298,8 +298,7 @@ bool EntityIsVisible(ECS *ecs, Entity e);
  *
  * Example: ComponentDynamic(world, TextureData, freeTexture);
  */
-#define ComponentDynamic(ecs, C, dtor)                                         \
-  EcsComponent(ecs, #C, sizeof(C), dtor)
+#define ComponentDynamic(ecs, C, dtor) EcsComponent(ecs, #C, sizeof(C), dtor)
 
 /**
  * Adds a component to an entity with initialization values.
@@ -317,7 +316,7 @@ bool EntityIsVisible(ECS *ecs, Entity e);
 #define AddComponent(ecs, entity, C, ...)                                      \
   do {                                                                         \
     C _tmp = __VA_ARGS__;                                                      \
-    EcsAddComponent(ecs, entity, EcsCID(ecs, #C), &_tmp);                      \
+    EcsAddComponent(ecs, entity, EcsComponentID(ecs, #C), &_tmp);              \
   } while (0)
 
 /**
@@ -334,7 +333,7 @@ bool EntityIsVisible(ECS *ecs, Entity e);
  * Example: Position *pos = GetComponent(world, player, Position);
  */
 #define GetComponent(ecs, entity, C)                                           \
-  (C *)EcsGetComponent(ecs, entity, EcsCID(ecs, #C))
+  (C *)EcsGetComponent(ecs, entity, EcsComponentID(ecs, #C))
 
 /**
  * Removes a component from an entity.
@@ -349,7 +348,7 @@ bool EntityIsVisible(ECS *ecs, Entity e);
  * @see ComponentDynamic() for components with destructors
  */
 #define RemoveComponent(ecs, entity, C)                                        \
-  EcsRemoveComponent(ecs, entity, EcsCID(ecs, #C))
+  EcsRemoveComponent(ecs, entity, EcsComponentID(ecs, #C))
 
 /**
  * Gets the component ID of a specific component.
@@ -358,7 +357,7 @@ bool EntityIsVisible(ECS *ecs, Entity e);
  * @param C Component type name
  * @return Component ID: EcsID
  */
-#define ComponentID(ecs, C) EcsCID(ecs, #C)
+#define ComponentID(ecs, C) EcsComponentID(ecs, #C)
 
 /**
  * Registers a component type manually.
@@ -373,8 +372,7 @@ bool EntityIsVisible(ECS *ecs, Entity e);
  * @param dtor A destructor function
  * @return Component ID: EcsID
  */
-Component EcsComponent(ECS *ecs, char *name, size_t size,
-                               void (*dtor)(void *));
+Component EcsComponent(ECS *ecs, char *name, size_t size, void (*dtor)(void *));
 
 /**
  * Adds component data to an entity using raw data pointer.
@@ -442,14 +440,14 @@ bool EcsHasComponents(ECS *ecs, Entity e, Signature mask);
 /**
  * Finds component ID by component name.
  *
- * Performs linear search through registered components. Returns component
- * count if name not found (invalid ID).
+ * Performs binary search through registered components. Returns an invalid id
+ * if not found. Be carefull before using it.
  *
  * @param ecs Registry to search
  * @param name Component type name to find
- * @return Component ID, or max number of components if not found.
+ * @return Component ID, or invalid ID if not found.
  */
-Component EcsCID(ECS *ecs, char *name);
+Component EcsComponentID(ECS *ecs, char *name);
 
 // ######### //
 //  SYSTEMS  //

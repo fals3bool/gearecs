@@ -6,7 +6,11 @@
 #include <string.h>
 
 typedef struct {
+  Component id;
   char *name;
+} ComponentID;
+
+typedef struct {
   void *list;
   size_t size;
   void (*dtor)(void *);
@@ -25,6 +29,7 @@ struct Registry {
   Entity *free_entities;
   Entity free_count;
 
+  ComponentID *search;
   ComponentData *components;
   Component comp_count;
   Component comp_alloc;
@@ -154,8 +159,12 @@ bool EntityIsVisible(ECS *ecs, Entity e) { return ecs->entities[e].visible; }
 //  COMPONENT  //
 // ########### //
 
+int comp(const void *a, const void *b) {
+  return strcmp(((ComponentID *)a)->name, ((ComponentID *)b)->name);
+}
+
 Component EcsComponent(ECS *ecs, char *name, size_t size,
-                               void (*dtor)(void *)) {
+                       void (*dtor)(void *)) {
   // maximum number of components for signatures
   if (ecs->comp_count >= 64)
     return InvalidID;
@@ -164,16 +173,21 @@ Component EcsComponent(ECS *ecs, char *name, size_t size,
   if (ecs->comp_count >= ecs->comp_alloc) {
     Component new_alloc = ecs->comp_alloc ? ecs->comp_alloc * 2 : 4;
     ComponentData *new_components;
-    if (!ecs->components)
+    ComponentID *new_search;
+    if (!ecs->components) {
       new_components = malloc(sizeof(ComponentData) * new_alloc);
-    else
+      new_search = malloc(sizeof(ComponentID) * new_alloc);
+    } else {
       new_components =
           realloc(ecs->components, sizeof(ComponentData) * new_alloc);
+      new_search = realloc(ecs->search, sizeof(ComponentID) * new_alloc);
+    }
 
-    if (!new_components)
+    if (!new_components || !new_search)
       return InvalidID;
 
     ecs->components = new_components;
+    ecs->search = new_search;
     ecs->comp_alloc = new_alloc;
   }
 
@@ -184,10 +198,14 @@ Component EcsComponent(ECS *ecs, char *name, size_t size,
 
   // If failed no free() is needed because comp_count didn't increased.
   ecs->comp_count++;
-  ecs->components[id].name = name;
   ecs->components[id].size = size;
   ecs->components[id].dtor = dtor;
   ecs->components[id].list = component_list;
+
+  ecs->search[id].id = id;
+  ecs->search[id].name = name;
+  qsort(ecs->search, ecs->comp_count, sizeof(ComponentID), comp);
+
   return id;
 }
 
@@ -254,10 +272,18 @@ bool EcsHasComponents(ECS *ecs, Entity e, Signature mask) {
   return (ecs->entities[e].signature & mask) == mask;
 }
 
-Component EcsCID(ECS *ecs, char *name) {
-  for (Component id = 0; id < ecs->comp_count; id++) {
-    if (strcmp(ecs->components[id].name, name) == 0)
-      return id;
+Component EcsComponentID(ECS *ecs, char *name) {
+  Component a = 0, b = ecs->comp_count - 1;
+  while (a <= b) {
+    Component k = (a + b) / 2;
+    int c = strcmp(ecs->search[k].name, name);
+    if (c == 0)
+      return ecs->search[k].id;
+
+    if (c > 0)
+      b = k - 1;
+    else
+      a = k + 1;
   }
   return InvalidID;
 }
@@ -296,7 +322,7 @@ Signature EcsSignatureImpl(ECS *ecs, const char *str) {
   char *components[8];
   size_t n = split(buffer, components, 8);
   for (size_t i = 0; i < n; i++) {
-    Component cid = EcsCID(ecs, components[i]);
+    Component cid = EcsComponentID(ecs, components[i]);
     assert(cid < 64 && "Component not found"); // overflow signature bits
     mask |= (1ULL << cid);
   }
