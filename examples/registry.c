@@ -2,7 +2,8 @@
 
 #include <stdio.h>
 
-#define PRINT_ID(entity) printf("%s {id:%d}\n", #entity, entity)
+#define PRINT_ID(world, entity)                                                \
+  printf("{id:%d, tag:%s}\n", entity, EcsEntityData(world, entity)->tag)
 
 typedef struct {
   float x;
@@ -26,17 +27,17 @@ int main(void) {
   ECS *world = EcsRegistry(32);
 
   // ENTITIES
-  Entity e0 = EcsEntity(world);
-  PRINT_ID(e0);
-  Entity e1 = EcsEntity(world);
-  PRINT_ID(e1);
-  Entity e2 = EcsEntity(world);
-  PRINT_ID(e2);
+  Entity e0 = EcsEntity(world, "e0");
+  PRINT_ID(world, e0);
+  Entity e1 = EcsEntity(world, "e1");
+  PRINT_ID(world, e1);
+  Entity e2 = EcsEntity(world, "e2");
+  PRINT_ID(world, e2);
   EcsEntityFree(world, e1);
-  Entity e3 = EcsEntity(world);
-  PRINT_ID(e3);
-  e1 = EcsEntity(world);
-  PRINT_ID(e1);
+  Entity e3 = EcsEntity(world, "e3");
+  PRINT_ID(world, e3);
+  e1 = EcsEntity(world, "e1");
+  PRINT_ID(world, e1);
 
   // REGISTER AND ADD COMPONENT
   Component(world, Position);

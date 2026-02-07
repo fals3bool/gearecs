@@ -3,18 +3,24 @@
 
 #include <stdio.h>
 
-void printID(ECS *ecs, Entity e) { printf(" - [%d]\n", e); }
+void printID(ECS *ecs, Entity e) {
+  char *tag = EcsEntityData(ecs, e)->tag;
+  printf(" - [%d \"%s\"]\n", e, tag);
+}
 
 void printHierarchy(ECS *ecs, Entity e) {
   Parent *parent = GetComponent(ecs, e, Parent);
   Children *children = GetComponent(ecs, e, Children);
-  printf("Hierarchy Relations of [Entity: %d] {%s}\n", e,
-         EntityIsActive(ecs, e) ? "ACTIVE" : "NOT ACTIVE");
-  if (parent)
-    printf("Parent -> %d\n", parent->entity);
+  printf("Hierarchy Relations of [Entity: %d] {%s} {%s}\n", e,
+         EntityIsActive(ecs, e) ? "ACTIVE" : "NOT ACTIVE",
+         EntityIsVisible(ecs, e) ? "VISIBLE" : "INVISIBLE");
+  if (parent) {
+    printf("Parent:\n");
+    printID(ecs, parent->entity);
+  }
   if (children) {
     printf("Children:\n");
-    EntityForEachChild(ecs, e, printID);
+    ForEachChild(ecs, e, printID);
   }
 
   Transform2 *t = GetComponent(ecs, e, Transform2);
@@ -27,20 +33,18 @@ void printHierarchy(ECS *ecs, Entity e) {
 int main(void) {
 
   ECS *ecs = EcsRegistry(32);
-  Component(ecs, Parent);
-  Component(ecs, Children);
-  Component(ecs, EntityData);
   Component(ecs, Transform2);
+  Component(ecs, Parent);
+  ComponentDynamic(ecs, Children, ChildrenDestructor);
 
-  System(ecs, HierarchyTransformSystem, 0, Transform2, Parent);
   SystemGlobal(ecs, printHierarchy, 0);
 
-  Entity A = EcsEntity(ecs);
-  Entity B = EcsEntity(ecs);
-  Entity C = EcsEntity(ecs);
+  // foreach Child: Child.position = Parent.position + Child.localPosition
+  System(ecs, HierarchyTransformSystem, 0, Transform2, Parent);
 
-  AddComponent(ecs, A, EntityData, EntityDataActive("A"));
-  AddComponent(ecs, B, EntityData, EntityDataActive("B"));
+  Entity A = EcsEntity(ecs, "A");
+  Entity B = EcsEntity(ecs, "B");
+  Entity C = EcsEntity(ecs, "C");
 
   AddComponent(ecs, A, Transform2, TransformLocalPos(20, 30));
   AddComponent(ecs, C, Transform2, TransformPos(20, 30));
@@ -50,33 +54,38 @@ int main(void) {
   // f = FindByTag(ecs, "A");
   // printf("found: {id: %d}\n", f);
 
-  EntityAddChild(ecs, B, A);
-  EntityAddChild(ecs, B, C);
-
-  EntityAddChild(ecs, A, C); // remove child from B, move to A
-  EntityAddChild(ecs, C, C); // cannot
-  EntityAddChild(ecs, C, A); // cannot
-  EntityAddChild(ecs, C, B); // cannot
-
-  EntityAddParent(ecs, C, A); // already done
-  EntityAddParent(ecs, A, B); // already done
-  EntityAddParent(ecs, A, C); // cannot
-  EntityAddParent(ecs, C, B); // remove child from A, move to B
-  EntityAddParent(ecs, A, C); // remove child from B, move to C
-  EntityAddParent(ecs, B, A); // cannot
-
-  EntitySetActive(ecs, C, false); // C will still be active because it does not
-                                  // have EntityData and parent (B) is active
-
-  // Deactivated entities won't be read by systems
-  EntitySetActive(ecs, B, true); // All entities are now active
+  AddChild(ecs, B, A);
+  AddChild(ecs, B, C);
 
   EcsRunSystems(ecs, 0);
 
-  printf("Destroy B id:%d\n\n", B);
-  EntityDestroy(ecs, B); // destroy B, remove parent from C
+  printf("¬-¬-¬-¬-¬-¬-¬-¬-¬-\nHierarchy changed\n¬-¬-¬-¬-¬-¬-¬-¬-¬-\n\n");
+
+  AddChild(ecs, A, C); // remove child from B, move to A
+  AddChild(ecs, C, C); // cannot
+  AddChild(ecs, C, A); // cannot
+  AddChild(ecs, C, B); // cannot
+
+  AddParent(ecs, C, A); // already done
+  AddParent(ecs, A, B); // already done
+  AddParent(ecs, A, C); // cannot
+  AddParent(ecs, C, B); // remove child from A, move to B
+  AddParent(ecs, A, C); // remove child from B, move to C
+  AddParent(ecs, B, A); // cannot
+
+  SetActive(ecs, C, false);  // deactivate C its children (recursively)
+  SetVisible(ecs, C, false); // hide C and its children (recursively)
+
+  // Deactivated entities won't be read by systems
+  SetActive(ecs, B, true); // activate B and its children (recursively)
+
+  EcsRunSystems(ecs, 0);
+
+  printf("¬-¬-¬-¬-¬-¬-¬-\nDestroy B id:%d\n¬-¬-¬-¬-¬-¬-¬-\n\n", B);
+  Destroy(ecs, B); // destroy B, remove parent from C
   // EntityDestroyRecursive(ecs, C); // destroy C and children...
 
+  EntitySetVisible(ecs, C, true); // ignore children
   EcsRunSystems(ecs, 0);
 
   return 0;

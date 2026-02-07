@@ -5,7 +5,6 @@
  * @brief GearECS core file
  */
 
-#include <gearecs/gameobject.h>
 #include <gearecs/world.h>
 
 #endif

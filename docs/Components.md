@@ -26,8 +26,10 @@ void foo(ECS *ecs) {
     stats.health = 20;
     stats.speed = 5;
     stats.level = 2;
-    // AddByRef allows complex initialization
-    AddComponentByRef(ecs, player, PlayerStats, stats);
+
+    // For complex initialization, use a temporary variable
+    PlayerStats tempStats = {20, 9.0f, 2};
+    AddComponent(ecs, player, PlayerStats, tempStats);
 
     // Retrieve component
     PlayerStats *ps = GetComponent(ecs, player, PlayerStats);
@@ -56,10 +58,9 @@ Camera2D camera;
 void foo() {
     ECS *ecs = EcsWorld(32, camera);
     Entity e = EcsEntity(ecs);
-    AddComponent(ecs, e, Transform2, TransformZero);
+    AddComponent(ecs, e, Transform2, TransformOrigin);
     AddComponent(ecs, e, RigidBody, RigidBodyStatic);
-    Collider col = ColliderSolid(5, 20);
-    AddComponentByRef(ecs, e, Collider, col);
+    AddComponent(ecs, e, Collider, ColliderSolid(5, 20));
 
     EcsLoop(ecs);
     EcsFree(ecs);

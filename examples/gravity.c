@@ -1,5 +1,4 @@
 #include <gearecs.h>
-#include <stdio.h>
 
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 450
@@ -35,19 +34,21 @@ int main(void) {
   ECS *world = EcsWorld(32, camera);
   System(world, DebugColliderSystem, EcsOnRender, Collider, Transform2);
 
-  Entity ball = GameObject(world, "ball");
-  AddComponent(world, ball, Collider,
+  Entity box = EcsEntity(world, "box");
+  AddComponent(world, box, Transform2, TransformOrigin);
+  AddComponent(world, box, Collider,
                ColliderRect((Rectangle){0, 0, 10, 10}, true));
-  AddComponent(world, ball, CollisionListener, {OnGround});
-  AddComponent(world, ball, RigidBody, RigidBodyDynamic(50, 3));
-  AddScript(world, ball, ScriptMove, EcsOnFixedUpdate);
+  AddComponent(world, box, CollisionListener, {OnGround});
+  AddComponent(world, box, RigidBody, RigidBodyDynamic(50, 3));
+  AddScript(world, box, ScriptMove, EcsOnFixedUpdate);
 
-  Entity floor = GameObject(world, "floor");
-  Rectangle rect2 = {-SCREEN_WIDTH / 2.f + 20, 0, SCREEN_WIDTH - 40, 10};
-  AddComponent(world, floor, Collider, ColliderRect(rect2, true));
+  Entity floor = EcsEntity(world, "floor");
+  AddComponent(world, floor, Transform2, TransformPos(0, 100));
+  AddComponent(world, floor, Collider,
+               ColliderRect((Rectangle){-SCREEN_WIDTH / 2.f + 20, 0,
+                                        SCREEN_WIDTH - 40, 10},
+                            true));
   AddComponent(world, floor, RigidBody, RigidBodyStatic);
-  Transform2 *t = GetComponent(world, floor, Transform2);
-  t->position.y += 100;
 
   EcsLoop(world);
 

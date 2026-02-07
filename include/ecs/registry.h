@@ -1,10 +1,6 @@
 #ifndef ECS_REGISTRY_H
 #define ECS_REGISTRY_H
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-
 /**
  * @file registry.h
  * @brief Core ECS (Entity Component System) Registry for gearecs library
@@ -26,6 +22,10 @@
  * - Signatures (bitmasks) for component filtering
  */
 
+#include <ecs/entity.h>
+
+#include <stddef.h>
+
 /**
  * An ECS Registry is used to centralize entities, components and systems.
  *
@@ -41,35 +41,6 @@
 typedef struct Registry ECS;
 
 /**
- * An ID is a unique identifier for entities and components.
- *
- * Uses uint16_t to support up to 65536 unique entities/components.
- * Used throughout the system for efficient memory usage and fast lookups.
- */
-typedef uint16_t EcsID;
-
-/**
- * Maximum ID value, never reached during a normal lifecycle.
- *
- * Returned by the api after an error.
- */
-#define InvalidID ((EcsID) - 1)
-
-/**
- * An entity represents a general purpose object in the game world.
- *
- * Entities are defined by their components - an entity with no components
- * still exists but has no behavior or properties. Entities are lightweight
- * and can be created/destroyed frequently.
- *
- * @note Entity IDs are recycled after destruction for efficiency
- * @see Signature for component filtering
- * @see EcsEntity() to create entities
- * @see EcsEntityFree() to destroy an entity
- */
-typedef EcsID Entity;
-
-/**
  * Components define entities by storing data that represents specific aspects.
  *
  * A component represents one aspect of an entity (position, velocity, health,
@@ -82,22 +53,6 @@ typedef EcsID Entity;
  * @see RemoveComponent() to remove component from entities
  */
 typedef EcsID Component;
-
-/**
- * Signatures are bitmasks that refer to sets of components.
- *
- * Used by systems to filter entities based on their component composition.
- * Each bit represents a component ID.
- *
- * Example: The signature 0b10011 (19) represents entities with components [0,
- * 1, 4].
- *
- * Supports up to 64 component types.
- *
- * @see EcsSignature() to create signatures from a list of components
- * @see Component() for component ID registration
- */
-typedef uint64_t Signature;
 
 /**
  * Script function type for entity-specific logic execution.
@@ -152,7 +107,7 @@ ECS *EcsRegistry(uint16_t max_entities);
  *
  * @param ecs Registry to destroy
  *
- * @see ComponentDtor() for internal data cleanup
+ * @see ComponentDynamic() for components with destructors
  */
 void EcsFree(ECS *ecs);
 
@@ -172,7 +127,7 @@ void EcsFree(ECS *ecs);
  * @see EcsEntityFree() to destroy entities
  * @see AddComponent() to add components to entities
  */
-Entity EcsEntity(ECS *ecs);
+Entity EcsEntity(ECS *ecs, char *tag);
 
 /**
  * Checks if an entity is still alive (not destroyed).
@@ -192,8 +147,8 @@ bool EcsEntityIsAlive(ECS *ecs, Entity e);
  * @param ecs Registry containing the entity
  * @param e Entity ID to destroy
  *
- * @see EntityDestroy() for hierarchical destruction
- * @see EntityDestroyRecursive() for recursive destruction
+ * @see Destroy() for hierarchical destruction
+ * @see DestroyRecursive() for recursive destruction
  */
 void EcsEntityFree(ECS *ecs, Entity e);
 
@@ -226,14 +181,55 @@ void EcsForEachEntity(ECS *ecs, Script script);
 // ######### //
 
 /**
+ * Gets the EntityData component for an entity.
+ *
+ * Returns a pointer to the entity's EntityData component which contains
+ * metadata like tag, active/visible status, and component signature.
+ *
+ * @param ecs Registry containing the entity
+ * @param e Entity to get data for
+ * @return Pointer to EntityData component, or NULL if not found
+ *
+ * @see EntityData struct for component details
+ * @see EntityFindByTag() to find entities by tag
+ */
+EntityData *EcsEntityData(ECS *ecs, Entity e);
+
+/**
+ * Finds the first entity with the specified tag.
+ *
+ * Performs linear search through all entities with EntityData components.
+ * Returns an invalid entity ID if no matching entity is found.
+ *
+ * @param ecs Registry to search in
+ * @param tag Tag string to search for
+ * @return Entity with matching tag, or invalid id value if not found
+ *
+ * Example: if(EntityFindByTag(ecs, "Player2") == EcsEntityCount())
+ *
+ *    printf("Not Found\n");
+ */
+Entity EntityFindByTag(ECS *ecs, char *tag);
+
+/**
+ * Checks if an entity has a specific tag.
+ *
+ * @param ecs Registry containing the entity
+ * @param e Entity to check
+ * @param tag Tag string to compare
+ * @return true if entity has matching tag, false otherwise
+ */
+bool EntityHasTag(ECS *ecs, Entity e, char *tag);
+
+/**
  * Sets whether an entity is active for system processing.
  *
- * Inactive entities are ignored by Update/FixedUpdate/LateUpdate systems
- * but still participate in Render systems unless visibility is also disabled.
+ * Inactive entities are ignored by update systems
+ * but still participate in render systems unless visibility is also disabled.
  *
  * @param ecs Registry containing the entity
  * @param e Entity to modify
- * @param active boolean
+ * @param active true for activated, false for deactivated
  *
  * @see EntityIsActive() to check state
  * @see EntitySetVisible() for render control
@@ -252,12 +248,12 @@ bool EntityIsActive(ECS *ecs, Entity e);
 /**
  * Sets whether an entity is visible for rendering.
  *
- * Invisible entities are ignored by Render and Gui systems but still
- * participate in Update systems unless activity is also disabled.
+ * Invisible entities are ignored by render and Gui systems but still
+ * participate in update systems unless activity is also disabled.
  *
  * @param ecs Registry containing the entity
  * @param e Entity to modify
- * @param visible boolean
+ * @param visible true for visible, false for hidden
  *
  * @see EntityIsVisible() to check state
  * @see EntitySetActive() for update control
@@ -352,7 +348,7 @@ bool EntityIsVisible(ECS *ecs, Entity e);
  * @param entity Entity to remove component from
  * @param C Component type name
  *
- * @see ComponentDtor()
+ * @see ComponentDynamic() for components with destructors
  */
 #define RemoveComponent(ecs, entity, C)                                        \
   EcsRemoveComponent(ecs, entity, EcsCID(ecs, #C))

@@ -39,12 +39,12 @@ void foo() {
     Component(world, Transform);
     System(world, MoveSystem, EcsOnUpdate, Transform, UserInput);
 
-    Entity player = EcsEntity(world);
-    AddComponent(ecs, player, UserInput, {0, 0});
-    AddComponent(ecs, player, Transform, {{0, 0}, {0, 0}, 0});
+    Entity player = EcsEntity(world, "Player");
+    AddComponent(world, player, UserInput, {0});
+    AddComponent(world, player, Transform, {0});
 
-    while(bar) {
-        RunSystems(ecs, EcsOnUpdate);
+    while(WindowShouldClose() == false) {
+        EcsRunSystems(world, EcsOnUpdate);
     }
 }
 ```

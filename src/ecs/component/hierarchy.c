@@ -2,23 +2,34 @@
 
 #include <stdlib.h>
 
+// Component cleanup function
+void ChildrenDestructor(void *self) {
+  Children *children = (Children *)self;
+  if (children && children->list) {
+    free(children->list);
+    children->list = NULL;
+    children->count = 0;
+    children->allocated = 0;
+  }
+}
+
 // Every parent operation will call the children operation with swapped entities
 // and change the parent component.
 //
 // The children operation is the one with the logic.
 
-bool EntitySetParent(ECS *ecs, Entity e, Entity p) {
+bool SetParent(ECS *ecs, Entity e, Entity p) {
   Parent *old = GetComponent(ecs, e, Parent);
   if (old && old->entity == p)
     return true;
 
   if (old)
-    EntityRemoveChild(ecs, old->entity, e);
+    RemoveChild(ecs, old->entity, e);
   AddComponent(ecs, e, Parent, {p});
   return true;
 }
 
-bool EntitySetChild(ECS *ecs, Entity e, Entity c) {
+bool SetChild(ECS *ecs, Entity e, Entity c) {
   // E child of C child of E -> loop! (recursively)
   Parent *parent = GetComponent(ecs, e, Parent);
   while (parent) {
@@ -56,30 +67,27 @@ bool EntitySetChild(ECS *ecs, Entity e, Entity c) {
   }
 
   // Hierarchical entitydata states
-  EntitySetActive(ecs, c, EntityIsActive(ecs, e));
-  EntitySetVisible(ecs, c, EntityIsVisible(ecs, e));
+  SetActive(ecs, c, EntityIsActive(ecs, e));
+  SetVisible(ecs, c, EntityIsVisible(ecs, e));
   return true;
 }
 
-void EntityAddParent(ECS *ecs, Entity e, Entity p) {
-  EntityAddChild(ecs, p, e);
-}
+void AddParent(ECS *ecs, Entity e, Entity p) { AddChild(ecs, p, e); }
 
-void EntityAddChild(ECS *ecs, Entity e, Entity c) {
+void AddChild(ECS *ecs, Entity e, Entity c) {
   if (e == c)
     return;
-  if (EntitySetChild(ecs, e, c))
-    EntitySetParent(ecs, c, e);
+  if (SetChild(ecs, e, c))
+    SetParent(ecs, c, e);
 }
 
-void EntityRemoveParent(ECS *ecs, Entity e) {
+void RemoveParent(ECS *ecs, Entity e) {
   Parent *parent = GetComponent(ecs, e, Parent);
-  if (!parent)
-    return;
-  EntityRemoveChild(ecs, parent->entity, e);
+  if (parent)
+    RemoveChild(ecs, parent->entity, e);
 }
 
-void EntityRemoveChild(ECS *ecs, Entity e, Entity c) {
+void RemoveChild(ECS *ecs, Entity e, Entity c) {
   Children *children = GetComponent(ecs, e, Children);
   if (!children || children->count <= 0)
     return;
@@ -96,52 +104,62 @@ void EntityRemoveChild(ECS *ecs, Entity e, Entity c) {
     RemoveComponent(ecs, e, Children);
 }
 
-void EntityDestroy(ECS *ecs, Entity e) {
-  EntityRemoveParent(ecs, e);
+void Destroy(ECS *ecs, Entity e) {
+  RemoveParent(ecs, e);
 
   Children *children = GetComponent(ecs, e, Children);
-  if (children)
+  if (children) {
     for (Entity i = 0; i < children->count; i++)
-      EntityRemoveParent(ecs, children->list[i]);
+      RemoveParent(ecs, children->list[i]);
+  }
 
   EcsEntityFree(ecs, e);
 }
 
-void EntityDestroyRecursive(ECS *ecs, Entity e) {
-  EntityRemoveParent(ecs, e);
+void DestroyRecursive(ECS *ecs, Entity e) {
+  RemoveParent(ecs, e);
 
   Children *children = GetComponent(ecs, e, Children);
-  if (children)
+  if (children) {
     for (Entity i = 0; i < children->count; i++)
-      EntityDestroyRecursive(ecs, children->list[i]);
+      DestroyRecursive(ecs, children->list[i]);
+  }
 
   EcsEntityFree(ecs, e);
 }
 
-void EntityForEachChild(ECS *ecs, Entity e, Script s) {
+void ForEachChild(ECS *ecs, Entity e, Script s) {
   Children *children = GetComponent(ecs, e, Children);
-  if (!children)
-    return;
-  for (Entity i = 0; i < children->count; i++)
-    s(ecs, children->list[i]);
-}
-
-void EntityForEachChildRecursive(ECS *ecs, Entity e, Script s) {
-  Children *children = GetComponent(ecs, e, Children);
-  if (!children)
-    return;
-  for (Entity i = 0; i < children->count; i++) {
-    s(ecs, children->list[i]);
-    EntityForEachChildRecursive(ecs, children->list[i], s);
+  if (children) {
+    for (Entity i = 0; i < children->count; i++)
+      s(ecs, children->list[i]);
   }
 }
 
-void ChildrenDestructor(void *self) {
-  Children *children = (Children *)self;
-  if (children && children->list) {
-    free(children->list);
-    children->list = NULL;
-    children->count = 0;
-    children->allocated = 0;
+void ForEachChildRecursive(ECS *ecs, Entity e, Script s) {
+  Children *children = GetComponent(ecs, e, Children);
+  if (children) {
+    for (Entity i = 0; i < children->count; i++) {
+      s(ecs, children->list[i]);
+      ForEachChildRecursive(ecs, children->list[i], s);
+    }
+  }
+}
+
+void SetActive(ECS *ecs, Entity e, bool active) {
+  EntitySetActive(ecs, e, active);
+  Children *children = GetComponent(ecs, e, Children);
+  if (children) {
+    for (Entity i = 0; i < children->count; i++)
+      SetActive(ecs, children->list[i], active);
+  }
+}
+
+void SetVisible(ECS *ecs, Entity e, bool visible) {
+  EntitySetVisible(ecs, e, visible);
+  Children *children = GetComponent(ecs, e, Children);
+  if (children) {
+    for (Entity i = 0; i < children->count; i++)
+      SetVisible(ecs, children->list[i], visible);
   }
 }

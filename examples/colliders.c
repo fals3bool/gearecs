@@ -1,4 +1,3 @@
-#include "raylib.h"
 #include <gearecs/world.h>
 #include <service/layers.h>
 
@@ -110,7 +109,7 @@ void LoadScene(ECS *ecs) {
 
   // COLLIDER: [SOLID]
   // BODY: [NONE]
-  Entity A = EcsEntity(ecs);
+  Entity A = EcsEntity(ecs, "A");
   AddComponent(ecs, A, Transform2, TransformPos(-250, 100));
   AddComponent(ecs, A, Collider, ColliderSolid(5, 18));
   AddComponent(ecs, A, CollisionListener, {OnCollisionHandler});
@@ -118,7 +117,7 @@ void LoadScene(ECS *ecs) {
 
   // COLLIDER: [TRIGGER]
   // BODY: [NONE]
-  Entity B = EcsEntity(ecs);
+  Entity B = EcsEntity(ecs, "B");
   AddComponent(ecs, B, Transform2, TransformPos(-150, -100));
   AddComponent(ecs, B, Collider, ColliderTrigger(4, 20));
   AddComponent(ecs, B, CollisionListener, {OnCollisionHandler});
@@ -126,7 +125,7 @@ void LoadScene(ECS *ecs) {
 
   // COLLIDER: [SOLID]
   // BODY: [DYNAMIC]
-  Entity C = EcsEntity(ecs);
+  Entity C = EcsEntity(ecs, "C");
   AddComponent(ecs, C, Transform2, TransformPos(0, 100));
   AddComponent(ecs, C, Collider, ColliderSolid(5, 22));
   RigidBody rbC = RigidBodyDynamic(80, 1.2f);
@@ -136,7 +135,7 @@ void LoadScene(ECS *ecs) {
 
   // COLLIDER: [SOLID]
   // BODY: [STATIC]
-  Entity D = EcsEntity(ecs);
+  Entity D = EcsEntity(ecs, "D");
   AddComponent(ecs, D, Transform2, TransformPos(150, -100));
   AddComponent(ecs, D, Collider, ColliderSolid(5, 14));
   AddComponent(ecs, D, RigidBody, RigidBodyStatic);
@@ -145,7 +144,7 @@ void LoadScene(ECS *ecs) {
   // COLLIDER: [SOLID]
   // BODY: [STATIC]
   // ANOTHER LAYER
-  Entity E = EcsEntity(ecs);
+  Entity E = EcsEntity(ecs, "E");
   AddComponent(ecs, E, Transform2, TransformPos(250, 100));
   Collider solid = ColliderSolid(5, 20);
   ColliderSetLayer(ecs, &solid, "alone");
@@ -154,8 +153,8 @@ void LoadScene(ECS *ecs) {
   AddScript(ecs, E, ScriptShowData, EcsOnRender);
 
   // PLAYER
-  Entity P = EcsEntity(ecs);
-  AddComponent(ecs, P, Transform2, TransformZero);
+  Entity P = EcsEntity(ecs, "Player");
+  AddComponent(ecs, P, Transform2, TransformOrigin);
   Collider colP = ColliderSolid(3, 22);
   ColliderSetLayer(ecs, &colP, "player");
   AddComponent(ecs, P, Collider, colP);

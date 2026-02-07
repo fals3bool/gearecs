@@ -26,15 +26,15 @@ void MoveUpSystem(ECS *world, Entity e){
 }
 
 void foo() {
-    ECS *world = EcsRegistry();
+    ECS *world = EcsRegistry(32);
     Component(world, Position);
     // Will only execute for entities that have a Position component
     System(world, MoveUpSystem, EcsOnUpdate, Position); 
 
-    Entity entity = EcsEntity(world);
+    Entity entity = EcsEntity(world, "entity");
     AddComponent(world, entity, Position, {0, 200});
     
-    EcsRunSystems(world, EcsOnUpdate); // Run all systems
+    EcsRunSystems(world, EcsOnUpdate); // Run all update systems
 }
 ```
 
@@ -48,7 +48,7 @@ System(ecs, BehaviourFixedSystem, EcsOnFixedUpdate, Behaviour);
 System(ecs, BehaviourRenderSystem, EcsOnRender, Behaviour);
 System(ecs, BehaviourGuiSystem, EcsOnGui, Behaviour);
 
-System(ecs, HierarchyTransformSystem, EcsOnUpdate, Transform2, Children);
+System(ecs, HierarchyTransformSystem, EcsOnUpdate, Transform2, Parent);
 System(ecs, TransformColliderSystem, EcsOnUpdate, Transform2, Collider);
 System(ecs, CollisionSystem, EcsOnUpdate, Transform2, Collider);
 

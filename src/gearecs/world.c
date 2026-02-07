@@ -12,18 +12,17 @@ static Color background; ///< Window background color
 ECS *EcsWorld(uint16_t max_entities, Camera2D camera) {
   ECS *ecs = EcsRegistry(max_entities);
 
-  Component(ecs, EntityData);
+  Component(ecs, Transform2);
+  Component(ecs, Behaviour);
   Component(ecs, Parent);
   ComponentDynamic(ecs, Children, ChildrenDestructor);
-  Component(ecs, Transform2);
   Component(ecs, Camera2D);
   Component(ecs, Sprite);
-  Component(ecs, Behaviour);
   ComponentDynamic(ecs, Collider, ColliderDestructor);
   Component(ecs, CollisionListener);
   Component(ecs, RigidBody);
 
-  Entity camEntity = EcsEntity(ecs);
+  Entity camEntity = EcsEntity(ecs, "MainCamera");
   AddComponent(ecs, camEntity, Camera2D, camera);
 
   System(ecs, BehaviourStartSystem, EcsOnStart, Behaviour);
@@ -77,7 +76,7 @@ void EcsLoop(ECS *world) {
     return;
   EcsRunSystems(world, EcsOnStart);
 #ifdef PLATFORM_WEB
-  emscripten_set_main_loop_arg(GameGenericLoop, scene, 0, 1);
+  emscripten_set_main_loop_arg(GameGenericLoop, world, 0, 1);
 #else
   while (!WindowShouldClose()) {
     GameGenericLoop(world);

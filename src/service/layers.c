@@ -122,7 +122,7 @@ void CleanupCollisionLayer(ECS *ecs, char *layer) {
 
 bool LayerIncludesLayer(ECS *ecs, uint8_t layer1, uint8_t layer2) {
   ECSLayer *ecsly = FindEcsLayer(ecs);
-  if (layer1 < ecsly->count && layer2 < ecsly->count)
+  if (layer1 > ecsly->count && layer2 > ecsly->count)
     return true;
   Signature mask = (1u << layer2);
   return (ecsly->layers[layer1].mask & mask) == mask;

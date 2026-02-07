@@ -45,8 +45,8 @@ int main(void) {
 
   ECS *world = EcsWorld(32, camera);
 
-  Texture tex = LoadTexture("examples/res/example.png");
-  Entity player = GameObject(world, "Player");
+  Texture tex = LoadTexture("res/example.png");
+  Entity player = EcsEntity(world, "Player");
   AddComponent(world, player, Sprite, {tex, {0, 0, 32, 32}, WHITE});
   AddComponent(world, player, RigidBody, RigidBodyKinematic(50, 1.5f));
   AddScript(world, player, MoveScript, EcsOnFixedUpdate);

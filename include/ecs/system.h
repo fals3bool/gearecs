@@ -108,7 +108,7 @@ void BehaviourGuiSystem(ECS *ecs, Entity e);
  *
  * Required components: Transform2, Parent
  *
- * Usage: System(ecs, HierarchyTransform, EcsOnUpdate, Transform2, Children)
+ * Usage: System(ecs, HierarchyTransform, EcsOnUpdate, Transform2, Parent)
  */
 void HierarchyTransformSystem(ECS *ecs, Entity e);
 
@@ -140,7 +140,7 @@ void TransformColliderSystem(ECS *ecs, Entity e);
  * Optional: CollisionListener (for event handling)
  * Optional: RigidBody (for newton laws based resolution)
  *
- * Usage: System(ecs, CollisionSystem, EcsOnFixedUpdate, Collider)
+ * Usage: System(ecs, CollisionSystem, EcsOnUpdate, Transform2, Collider)
  */
 void CollisionSystem(ECS *ecs, Entity e);
 

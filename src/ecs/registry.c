@@ -10,7 +10,7 @@ typedef struct {
   void *list;
   size_t size;
   void (*dtor)(void *);
-} ComponentList;
+} ComponentData;
 
 typedef struct {
   System *list;
@@ -20,12 +20,12 @@ typedef struct {
 
 struct Registry {
   Entity max_entities;
-  Signature *entities;
+  EntityData *entities;
   Entity entity_count;
   Entity *free_entities;
   Entity free_count;
 
-  ComponentList *components;
+  ComponentData *components;
   Component comp_count;
   Component comp_alloc;
 
@@ -78,7 +78,7 @@ void EcsFreeEntities(ECS *ecs) {
   ecs->free_count = 0;
 }
 
-Entity EcsEntity(ECS *ecs) {
+Entity EcsEntity(ECS *ecs, char *tag) {
   Entity e;
   if (ecs->free_count > 0) {
     e = ecs->free_entities[--ecs->free_count];
@@ -88,7 +88,7 @@ Entity EcsEntity(ECS *ecs) {
     e = ecs->entity_count++;
   }
   assert(e < ecs->max_entities && "Exceeded maximum number of entities");
-  ecs->entities[e] = 0; // signature // just in case
+  ecs->entities[e] = (EntityData){0, true, true, tag};
   return e;
 }
 
@@ -103,6 +103,7 @@ void EcsEntityFree(ECS *ecs, Entity e) {
   // Remove all components with proper cleanup
   for (Component c = 0; c < ecs->comp_count; c++)
     EcsRemoveComponent(ecs, e, c);
+  ecs->entities[e] = (EntityData){0};
 
   if (ecs->free_count < ecs->max_entities)
     ecs->free_entities[ecs->free_count++] = e;
@@ -118,6 +119,37 @@ void EcsForEachEntity(ECS *ecs, Script script) {
   }
 }
 
+// ######### //
+//   STATE   //
+// ######### //
+
+EntityData *EcsEntityData(ECS *ecs, Entity e) { return &ecs->entities[e]; }
+
+Entity EntityFindByTag(ECS *ecs, char *tag) {
+  for (Entity e = 0; e < ecs->comp_count; e++) {
+    if (strcmp(ecs->entities[e].tag, tag) == 0)
+      return e;
+  }
+  return InvalidID;
+}
+
+bool EntityHasTag(ECS *ecs, Entity e, char *tag) {
+  assert(e < ecs->max_entities && "Invalid entity");
+  return strcmp(ecs->entities[e].tag, tag) == 0;
+}
+
+void EntitySetActive(ECS *ecs, Entity e, bool active) {
+  ecs->entities[e].active = active;
+}
+
+bool EntityIsActive(ECS *ecs, Entity e) { return ecs->entities[e].active; }
+
+void EntitySetVisible(ECS *ecs, Entity e, bool visible) {
+  ecs->entities[e].visible = visible;
+}
+
+bool EntityIsVisible(ECS *ecs, Entity e) { return ecs->entities[e].visible; }
+
 // ########### //
 //  COMPONENT  //
 // ########### //
@@ -131,12 +163,12 @@ Component EcsRegisterComponent(ECS *ecs, char *name, size_t size,
   Component id = ecs->comp_count;
   if (ecs->comp_count >= ecs->comp_alloc) {
     Component new_alloc = ecs->comp_alloc ? ecs->comp_alloc * 2 : 4;
-    ComponentList *new_components;
+    ComponentData *new_components;
     if (!ecs->components)
-      new_components = malloc(sizeof(ComponentList) * new_alloc);
+      new_components = malloc(sizeof(ComponentData) * new_alloc);
     else
       new_components =
-          realloc(ecs->components, sizeof(ComponentList) * new_alloc);
+          realloc(ecs->components, sizeof(ComponentData) * new_alloc);
 
     if (!new_components)
       return InvalidID;
@@ -184,7 +216,7 @@ void EcsAddComponent(ECS *ecs, Entity e, Component id, void *data) {
   size_t size = ecs->components[id].size;
   void *dest = (uint8_t *)ecs->components[id].list + e * size;
   memcpy(dest, data, size);
-  ecs->entities[e] |= (1ULL << id);
+  ecs->entities[e].signature |= (1ULL << id);
 }
 
 void *EcsGetComponent(ECS *ecs, Entity e, Component id) {
@@ -203,7 +235,7 @@ void EcsRemoveComponent(ECS *ecs, Entity e, Component id) {
   if (ecs->components[id].dtor)
     ecs->components[id].dtor(dest);
   memset(dest, 0, size);
-  ecs->entities[e] &= ~(1ULL << id);
+  ecs->entities[e].signature &= ~(1ULL << id);
 }
 
 bool EcsHasComponent(ECS *ecs, Entity e, Component id) {
@@ -211,7 +243,7 @@ bool EcsHasComponent(ECS *ecs, Entity e, Component id) {
   assert(id < 64 && "Invalid component");
   assert(id < ecs->comp_count && "Component does not exist");
 
-  if ((ecs->entities[e] & (1ULL << id)) == 0)
+  if ((ecs->entities[e].signature & (1ULL << id)) == 0)
     return false;
   return true;
 }
@@ -219,7 +251,7 @@ bool EcsHasComponent(ECS *ecs, Entity e, Component id) {
 bool EcsHasComponents(ECS *ecs, Entity e, Signature mask) {
   assert(e < ecs->max_entities && "Invalid entity");
 
-  return (ecs->entities[e] & mask) == mask;
+  return (ecs->entities[e].signature & mask) == mask;
 }
 
 Component EcsCID(ECS *ecs, char *name) {

@@ -33,87 +33,6 @@
  */
 #define Empty {0}
 
-// ############ //
-//  ENTITY DATA //
-// ############ //
-
-/**
- * Component storing entity metadata and state information.
- *
- * Provides tagging capabilities and explicit control over entity
- * active/visible state. Useful for entity identification and state
- * management beyond the basic ECS entity state.
- *
- * @note Entities without this component are considered active and visible
- */
-typedef struct {
-  bool active;  ///< Whether entity participates in Update systems
-  bool visible; ///< Whether entity participates in Render systems
-  char *tag;    ///< String identifier for entity lookup
-} EntityData;
-
-/**
- * Creates an EntityData component with active and visible state.
- *
- * @param tag String tag for entity identification (can be NULL)
- * @return EntityData initializer
- *
- * Example: AddComponent(world, e, EntityData, EntityDataActive("Player"));
- */
-#define EntityDataActive(tag) {true, true, tag}
-
-/**
- * Creates an EntityData component with active but hidden state.
- *
- * Entity will participate in Update systems but not Render systems.
- *
- * @param tag String tag for entity identification (can be NULL)
- * @return EntityData initializer
- *
- * Example: AddComponent(world, e, EntityData,
- * EntityDataHidden("TriggerBlock"));
- */
-#define EntityDataHidden(tag) {true, false, tag}
-
-/**
- * Creates an EntityData component with inactive and hidden state.
- *
- * Useful to hide entities and use them later.
- *
- * @param tag String tag for entity identification (can be NULL)
- * @return EntityData initializer
- *
- * Example: AddComponent(world, e, EntityData,
- * EntityDataInactive("EnemyForLater"));
- */
-#define EntityDataInactive(tag) {false, false, tag}
-
-/**
- * Finds the first entity with the specified tag.
- *
- * Performs linear search through all entities with EntityData components.
- * Returns an invalid entity ID if no matching entity is found.
- *
- * @param ecs Registry to search in
- * @param tag Tag string to search for
- * @return Entity with matching tag, or invalid id value if not found
- *
- * Example: if(FindByTag(ecs, "Player2") > EcsEntityCount())
- *
- *    printf("Not Found\n");
- */
-Entity FindByTag(ECS *ecs, char *tag);
-
-/**
- * Checks if an entity has a specific tag.
- *
- * @param ecs Registry containing the entity
- * @param e Entity to check
- * @param tag Tag string to compare
- * @return true if entity has matching tag, false otherwise
- */
-bool HasTag(ECS *ecs, Entity e, char *tag);
-
 // ########### //
 //  TRANSFORM  //
 // ########### //
@@ -149,7 +68,7 @@ typedef struct {
  *
  * Example: AddComponent(world, e, Transform2, TransformZero);
  */
-#define TransformZero {{0, 0}, {1, 1}, 0, {0, 0}, {1, 1}, 0}
+#define TransformOrigin {{0, 0}, {1, 1}, 0, {0, 0}, {1, 1}, 0}
 
 /**
  * Creates a transform with specific world position.
@@ -266,7 +185,7 @@ Collider ColliderRect(Rectangle rect, bool solid);
  * Destructor for Collider component.
  *
  * Automatically frees vertex array memory when collider is removed
- * or entity is destroyed. Registered with ComponentDtor().
+ * or entity is destroyed. Registered with ComponentDynamic().
  *
  * @param self Pointer to Collider instance
  */
@@ -276,7 +195,7 @@ void ColliderDestructor(void *self);
  * Destructor for Children component.
  *
  * Automatically frees child list array memory when Children component
- * is removed or entity is destroyed. Registered with ComponentDtor().
+ * is removed or entity is destroyed. Registered with ComponentDynamic().
  *
  * @param self Pointer to Children instance
  */
@@ -540,8 +459,8 @@ typedef struct {
  * @note Using this component's fields is deprecated. Use foreach functions
  * instead.
  *
- * @see EntityForEachChild()
- * @see EntityForEachChildRecursive()
+ * @see ForEachChild()
+ * @see ForEachChildRecursive()
  */
 typedef struct {
   Entity *list;
@@ -559,10 +478,8 @@ typedef struct {
  * @param ecs Registry containing the entities
  * @param e Child entity
  * @param p Parent entity
- *
- * @see EntityAddChild() for the inverse operation
  */
-void EntityAddParent(ECS *ecs, Entity e, Entity p);
+void AddParent(ECS *ecs, Entity e, Entity p);
 
 /**
  * Adds a child entity to another entity.
@@ -573,10 +490,8 @@ void EntityAddParent(ECS *ecs, Entity e, Entity p);
  * @param ecs Registry containing the entities
  * @param e Parent entity
  * @param c Child entity to add
- *
- * @see EntityAddParent() for the inverse operation
  */
-void EntityAddChild(ECS *ecs, Entity e, Entity c);
+void AddChild(ECS *ecs, Entity e, Entity c);
 
 /**
  * Removes a child from its parent.
@@ -588,22 +503,22 @@ void EntityAddChild(ECS *ecs, Entity e, Entity c);
  * @param e Parent entity
  * @param c Child entity to remove
  */
-void EntityRemoveChild(ECS *ecs, Entity e, Entity c);
+void RemoveChild(ECS *ecs, Entity e, Entity c);
 
 /**
  * Destroys an entity and removes it from hierarchy.
  *
  * Removes the entity from its parent (if any), but keeps children alive.
- * Children become root entities. Use EntityDestroyRecursive() to destroy
+ * Children become root entities. Use DestroyRecursive() to destroy
  * the entire hierarchy branch.
  *
  * @param ecs Registry containing the entity
  * @param e Entity to destroy
  *
- * @see EntityDestroyRecursive() to destroy with all descendants
+ * @see DestroyRecursive() to destroy with all descendants
  * @see EcsEntityFree() for basic entity destruction
  */
-void EntityDestroy(ECS *ecs, Entity e);
+void Destroy(ECS *ecs, Entity e);
 
 /**
  * Destroys an entity and all its descendants.
@@ -614,10 +529,10 @@ void EntityDestroy(ECS *ecs, Entity e);
  * @param ecs Registry containing the entity
  * @param e Entity to destroy
  *
- * @see EntityDestroy() to destroy without descendants
+ * @see Destroy() to destroy without descendants
  * @see EcsEntityFree() for basic entity destruction
  */
-void EntityDestroyRecursive(ECS *ecs, Entity e);
+void DestroyRecursive(ECS *ecs, Entity e);
 
 /**
  * Executes a script on all direct children of an entity.
@@ -629,9 +544,9 @@ void EntityDestroyRecursive(ECS *ecs, Entity e);
  * @param e Parent entity
  * @param s Script to execute on each child
  *
- * @see EntityForEachChildRecursive() for all descendants
+ * @see ForEachChildRecursive() for all descendants
  */
-void EntityForEachChild(ECS *ecs, Entity e, Script s);
+void ForEachChild(ECS *ecs, Entity e, Script s);
 
 /**
  * Executes a script on all descendants of an entity.
@@ -643,8 +558,30 @@ void EntityForEachChild(ECS *ecs, Entity e, Script s);
  * @param e Root entity
  * @param s Script to execute on each descendant
  *
- * @see EntityForEachChild() for direct children only
+ * @see ForEachChild() for direct children only
  */
-void EntityForEachChildRecursive(ECS *ecs, Entity e, Script s);
+void ForEachChildRecursive(ECS *ecs, Entity e, Script s);
+
+/**
+ * Sets whether an entity (and its children) is active for system processing.
+ *
+ * @param ecs Registry containing the entity
+ * @param e Entity to modify
+ * @param active true for activated, false for deactivated
+ *
+ * @see EntitySetActive() to ignore entity children
+ */
+void SetActive(ECS *ecs, Entity e, bool active);
+
+/**
+ * Sets whether an entity (and its children) is visible for rendering.
+ *
+ * @param ecs Registry containing the entity
+ * @param e Entity to modify
+ * @param visible true for visible, false for hidden
+ *
+ * @see EntitySetVisible() to ignore entity children
+ */
+void SetVisible(ECS *ecs, Entity e, bool visible);
 
 #endif
