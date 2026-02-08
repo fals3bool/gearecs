@@ -27,6 +27,12 @@ typedef struct {
   Signature mask;
 } Layer;
 
+typedef struct {
+  Entity *entities;
+  Entity count;
+  Entity alloc;
+} LayerEntities;
+
 struct Registry {
   Entity max_entities;
   EntityData *entities;
@@ -42,6 +48,7 @@ struct Registry {
   LayerSystems *systems;
 
   Layer *layers;
+  LayerEntities *render;
   uint8_t layer_count;
 };
 
@@ -84,6 +91,7 @@ void EcsAllocEntities(ECS *ecs, Entity max_entities) {
   ecs->free_entities = calloc(max_entities, sizeof(Entity));
   ecs->entity_count = 0;
   ecs->free_count = 0;
+  ecs->render = NULL;
 }
 
 void EcsFreeEntities(ECS *ecs) {
@@ -94,6 +102,9 @@ void EcsFreeEntities(ECS *ecs) {
   ecs->free_entities = NULL;
   ecs->free_count = 0;
 }
+
+void AddEntityToLayer(ECS *ecs, Entity e, uint8_t ly);
+void RemoveEntityFromLayer(ECS *ecs, Entity e);
 
 Entity EcsEntity(ECS *ecs, char *tag) {
   Entity e;
@@ -106,6 +117,7 @@ Entity EcsEntity(ECS *ecs, char *tag) {
   }
   assert(e < ecs->max_entities && "Exceeded maximum number of entities");
   ecs->entities[e] = (EntityData){0, true, true, tag, 0};
+  AddEntityToLayer(ecs, e, 0);
   return e;
 }
 
@@ -120,6 +132,7 @@ void EcsEntityFree(ECS *ecs, Entity e) {
   // Remove all components with proper cleanup
   for (Component c = 0; c < ecs->comp_count; c++)
     EcsRemoveComponent(ecs, e, c);
+  RemoveEntityFromLayer(ecs, e);
   ecs->entities[e] = (EntityData){0};
 
   if (ecs->free_count < ecs->max_entities)
@@ -382,21 +395,28 @@ void EcsAddSystem(ECS *ecs, Script s, EcsLayer ly, Signature mask) {
   ecs->systems[ly].list[cur].mask = mask;
 }
 
-bool EcsCanRun(ECS *ecs, System *system, Entity e, EcsLayer ly) {
-  if (!EcsHasComponents(ecs, e, system->mask))
-    return 0;
-  if (ly < EcsOnRender)
-    return EntityIsActive(ecs, e);
-  else
-    return EntityIsVisible(ecs, e);
-}
-
 void EcsRunSystems(ECS *ecs, EcsLayer ly) {
   size_t len = ecs->systems[ly].size;
+  System *list = ecs->systems[ly].list;
+
+  if (ly < EcsOnRender) {
+    for (size_t s = 0; s < len; s++) {
+      for (Entity e = 0; e < ecs->entity_count; e++) {
+        if (EcsHasComponents(ecs, e, list[s].mask) && EntityIsActive(ecs, e))
+          list[s].run(ecs, e);
+      }
+    }
+    return;
+  }
+
+  // for rendering systems
   for (size_t s = 0; s < len; s++) {
-    for (Entity e = 0; e < ecs->entity_count; e++) {
-      if (EcsCanRun(ecs, &ecs->systems[ly].list[s], e, ly))
-        ecs->systems[ly].list[s].run(ecs, e);
+    for (uint8_t l = 0; l < ecs->layer_count; l++) {
+      for (Entity i = 0; i < ecs->render[l].count; i++) {
+        Entity e = ecs->render[l].entities[i];
+        if (EcsHasComponents(ecs, e, list[s].mask) && EntityIsVisible(ecs, e))
+          list[s].run(ecs, e);
+      }
     }
   }
 }
@@ -416,15 +436,23 @@ uint8_t LayerIndex(ECS *ecs, char *name) {
 void AddLayer(ECS *ecs, char *name) {
   uint8_t new_count = ecs->layer_count + 1;
   Layer *new_layers;
-  if (!ecs->layers)
+  LayerEntities *new_entities;
+  if (!ecs->layers) {
     new_layers = malloc(sizeof(Layer) * new_count);
-  else
+    new_entities = malloc(sizeof(LayerEntities) * new_count);
+  } else {
     new_layers = realloc(ecs->layers, sizeof(Layer) * new_count);
+    new_entities = realloc(ecs->render, sizeof(LayerEntities) * new_count);
+  }
 
-  if (!new_layers)
+  if (!new_layers || !new_entities)
     return;
   ecs->layers = new_layers;
+  ecs->render = new_entities;
 
+  ecs->render[ecs->layer_count].entities = NULL;
+  ecs->render[ecs->layer_count].count = 0;
+  ecs->render[ecs->layer_count].alloc = 0;
   ecs->layers[ecs->layer_count].name = name;
   ecs->layers[ecs->layer_count].mask = (Signature)-1; // enable all
   ecs->layer_count++;
@@ -438,7 +466,42 @@ void EcsFreeLayers(ECS *ecs) {
 }
 
 void EntitySetLayer(ECS *ecs, Entity e, char *layer) {
-  ecs->entities[e].layer = LayerIndex(ecs, layer);
+  RemoveEntityFromLayer(ecs, e);
+  uint8_t ly = LayerIndex(ecs, layer);
+  ecs->entities[e].layer = ly;
+  AddEntityToLayer(ecs, e, ly);
+}
+
+void AddEntityToLayer(ECS *ecs, Entity e, uint8_t ly) {
+  if (!ecs->render || ecs->layer_count <= ly)
+    return;
+  if (ecs->render[ly].count >= ecs->render[ly].alloc) {
+    Entity *new_list;
+    Entity new_alloc = ecs->render[ly].alloc ? ecs->render[ly].alloc * 2 : 16;
+    if (!ecs->render[ly].entities)
+      new_list = malloc(sizeof(Entity) * new_alloc);
+    else
+      new_list = realloc(ecs->render[ly].entities, sizeof(Entity) * new_alloc);
+
+    if (!new_list)
+      return;
+    ecs->render[ly].entities = new_list;
+  }
+  ecs->render[ly].entities[ecs->render[ly].count++] = e;
+}
+
+void RemoveEntityFromLayer(ECS *ecs, Entity e) {
+  uint8_t ly = ecs->entities[e].layer;
+  if (!ecs->render || ecs->layer_count <= ly || !ecs->render[ly].entities)
+    return;
+  Entity last = ecs->render[ly].count - 1;
+  for (Entity i = last; i >= 0; i--) {
+    if (ecs->render[ly].entities[i] == e) {
+      ecs->render[ly].entities[i] = ecs->render[ly].entities[last];
+      ecs->render[ly].count--;
+      return;
+    }
+  }
 }
 
 void LayerEnable(ECS *ecs, char *layer1, char *layer2) {
