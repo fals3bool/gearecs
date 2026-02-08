@@ -115,8 +115,6 @@ typedef struct {
   uint8_t vertices; ///< Number of vertices in polygon
   bool overlap;     ///< Collision overlap flag (internal)
   bool solid;       ///< true for solid, false for trigger
-
-  uint8_t layer; ///< Collision layer
 } Collider;
 
 /**

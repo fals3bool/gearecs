@@ -573,4 +573,98 @@ void EcsAddSystem(ECS *ecs, Script s, EcsLayer ly, Signature mask);
  */
 void EcsRunSystems(ECS *ecs, EcsLayer ly);
 
+// ######## //
+//  LAYERS  //
+// ######## //
+
+/**
+ * @brief Adds a new layer to the ECS registry.
+ *
+ * Creates a new layer with collision enabled for all other layers by default.
+ * Layers are used for both collision filtering and render ordering.
+ * Each layer can interact with up to 64 other layers through bitmask filtering.
+ *
+ * @param ecs Registry to add the layer to
+ * @param name Layer name
+ *
+ * @see EntitySetLayer() to assign entities to this layer
+ * @see LayerDisable() to disable specific collisions
+ */
+void AddLayer(ECS *ecs, char *name);
+
+/**
+ * @brief Assigns an entity to a specific layer.
+ *
+ * Sets the entity's layer which determines collision filtering and
+ * render ordering.
+ *
+ * @param ecs Registry containing the entity and layers
+ * @param e Entity to assign to layer
+ * @param layer Name of the layer to assign entity to
+ *
+ * @see AddLayer() to create layers
+ * @see LayerEnable() to enable collisions
+ * @see LayerIncludes() for collision checking
+ */
+void EntitySetLayer(ECS *ecs, Entity e, char *layer);
+
+/**
+ * @brief Enables collision between two layers.
+ *
+ * Sets up bidirectional collision filtering between the specified layers.
+ *
+ * @param ecs Registry containing the layers
+ * @param layer1 Name of the first layer
+ * @param layer2 Name of the second layer
+ *
+ * @see LayerDisable() to disable collisions
+ * @see LayerIncludes() to check if collisions are enabled
+ */
+void LayerEnable(ECS *ecs, char *layer1, char *layer2);
+
+/**
+ * @brief Disables collision between two layers.
+ *
+ * Removes bidirectional collision filtering between the specified layers.
+ *
+ * @param ecs Registry containing the layers
+ * @param layer1 Name of the first layer
+ * @param layer2 Name of the second layer
+ *
+ * @see LayerEnable() to enable collisions
+ * @see LayerDisableAll() to disable all collisions for a layer
+ */
+void LayerDisable(ECS *ecs, char *layer1, char *layer2);
+
+/**
+ * @brief Disables all collisions for a specific layer.
+ *
+ * Removes collision filtering between the specified layer and all other
+ * layers.
+ *
+ * @param ecs Registry containing the layer
+ * @param layer Name of the layer to disable all collisions for
+ *
+ * @see LayerEnable() to re-enable specific collisions
+ * @see LayerDisable() to disable specific layer pairs
+ */
+void LayerDisableAll(ECS *ecs, char *layer);
+
+/**
+ * @brief Checks if two layers can collide with each other.
+ *
+ * Determine if entities on the specified layers can collide. This is the fast
+ * path for collision checking using pre-resolved layer IDs, typically used in
+ * collision systems.
+ *
+ * @param ecs Registry containing the layers
+ * @param layer1 ID of the first layer (0-255)
+ * @param layer2 ID of the second layer (0-255)
+ * @return true if the layers can collide, false otherwise
+ *
+ * @see LayerIndex() to convert layer names to IDs
+ * @see EntitySetLayer() to assign entities to layers
+ */
+bool LayerIncludes(ECS *ecs, uint8_t layer1, uint8_t layer2);
+
 #endif

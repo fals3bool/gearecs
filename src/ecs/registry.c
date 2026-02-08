@@ -22,6 +22,11 @@ typedef struct {
   size_t alloc;
 } LayerSystems;
 
+typedef struct {
+  char *name;
+  Signature mask;
+} Layer;
+
 struct Registry {
   Entity max_entities;
   EntityData *entities;
@@ -35,6 +40,9 @@ struct Registry {
   Component comp_alloc;
 
   LayerSystems *systems;
+
+  Layer *layers;
+  uint8_t layer_count;
 };
 
 void EcsAllocSystems(ECS *ecs);
@@ -44,6 +52,7 @@ void EcsAllocEntities(ECS *ecs, Entity max_entities);
 void EcsFreeEntities(ECS *ecs);
 
 void EcsFreeComponents(ECS *ecs);
+void EcsFreeLayers(ECS *ecs);
 
 ECS *EcsRegistry(uint16_t max_entities) {
   ECS *ecs = malloc(sizeof(ECS));
@@ -59,6 +68,7 @@ void EcsFree(ECS *ecs) {
   EcsFreeSystems(ecs);
   EcsFreeComponents(ecs);
   EcsFreeEntities(ecs);
+  EcsFreeLayers(ecs);
   free(ecs);
 }
 
@@ -93,7 +103,7 @@ Entity EcsEntity(ECS *ecs, char *tag) {
     e = ecs->entity_count++;
   }
   assert(e < ecs->max_entities && "Exceeded maximum number of entities");
-  ecs->entities[e] = (EntityData){0, true, true, tag};
+  ecs->entities[e] = (EntityData){0, true, true, tag, 0};
   return e;
 }
 
@@ -387,4 +397,68 @@ void EcsRunSystems(ECS *ecs, EcsLayer ly) {
         ecs->systems[ly].list[s].run(ecs, e);
     }
   }
+}
+
+// ######## //
+//  LAYERS  //
+// ######## //
+
+uint8_t LayerIndex(ECS *ecs, char *name) {
+  for (int i = 0; i < ecs->layer_count; i++)
+    if (strcmp(ecs->layers[i].name, name) == 0)
+      return i;
+  assert(!"Layer does not exist!");
+  return ecs->layer_count;
+}
+
+void AddLayer(ECS *ecs, char *name) {
+  uint8_t new_count = ecs->layer_count + 1;
+  Layer *new_layers;
+  if (ecs->layers)
+    new_layers = realloc(ecs->layers, sizeof(Layer) * new_count);
+  else
+    new_layers = malloc(sizeof(Layer) * new_count);
+
+  if (!new_layers)
+    return;
+  ecs->layers = new_layers;
+
+  ecs->layers[ecs->layer_count].name = name;
+  ecs->layers[ecs->layer_count].mask = (Signature)-1; // enable all
+  ecs->layer_count++;
+}
+
+void EcsFreeLayers(ECS *ecs) {
+  if (ecs->layers)
+    free(ecs->layers);
+  ecs->layers = NULL;
+  ecs->layer_count = 0;
+}
+
+void EntitySetLayer(ECS *ecs, Entity e, char *layer) {
+  ecs->entities[e].layer = LayerIndex(ecs, layer);
+}
+
+void LayerEnable(ECS *ecs, char *layer1, char *layer2) {
+  uint8_t ly1 = LayerIndex(ecs, layer1);
+  uint8_t ly2 = LayerIndex(ecs, layer2);
+  ecs->layers[ly1].mask |= (1ULL << ly2);
+  ecs->layers[ly2].mask |= (1ULL << ly1);
+}
+
+void LayerDisable(ECS *ecs, char *layer1, char *layer2) {
+  uint8_t ly1 = LayerIndex(ecs, layer1);
+  uint8_t ly2 = LayerIndex(ecs, layer2);
+  ecs->layers[ly1].mask &= ~(1ULL << ly2);
+  ecs->layers[ly2].mask &= ~(1ULL << ly1);
+}
+
+void LayerDisableAll(ECS *ecs, char *layer) {
+  uint8_t ly = LayerIndex(ecs, layer);
+  ecs->layers[ly].mask = 0;
+}
+
+bool LayerIncludes(ECS *ecs, uint8_t layer1, uint8_t layer2) {
+  Signature mask = (1 << layer2);
+  return (ecs->layers[layer1].mask & mask) == mask;
 }

@@ -1,5 +1,4 @@
 #include <gearecs/world.h>
-#include <service/layers.h>
 
 #include <stdio.h>
 
@@ -76,7 +75,7 @@ void ScriptShowData(ECS *ecs, Entity self) {
            t->position.y + 20, fontsize, WHITE);
 
   char layertxt[20];
-  snprintf(layertxt, 11, "Layer: %d", c->layer);
+  snprintf(layertxt, 11, "Layer: %d", EcsEntityData(ecs, self)->layer);
   DrawText(layertxt,
            t->position.x -
                MeasureTextEx(GetFontDefault(), layertxt, fontsize, 1).x / 2,
@@ -104,8 +103,8 @@ void OnCollisionHandler(ECS *ecs, CollisionEvent *event) {
 void LoadScene(ECS *ecs) {
 
   AddLayer(ecs, "player");
-  AddLayer(ecs, "alone");
-  CleanupCollisionLayer(ecs, "alone");
+  AddLayer(ecs, "disable");
+  LayerDisableAll(ecs, "disable");
 
   // COLLIDER: [SOLID]
   // BODY: [NONE]
@@ -145,18 +144,18 @@ void LoadScene(ECS *ecs) {
   // BODY: [STATIC]
   // ANOTHER LAYER
   Entity E = EcsEntity(ecs, "E");
+  EntitySetLayer(ecs, E, "disable");
   AddComponent(ecs, E, Transform2, TransformPos(250, 100));
   Collider solid = ColliderSolid(5, 20);
-  ColliderSetLayer(ecs, &solid, "alone");
   AddComponent(ecs, E, Collider, solid);
   AddComponent(ecs, E, RigidBody, RigidBodyStatic);
   AddScript(ecs, E, ScriptShowData, EcsOnRender);
 
   // PLAYER
   Entity P = EcsEntity(ecs, "Player");
+  EntitySetLayer(ecs, P, "player");
   AddComponent(ecs, P, Transform2, TransformOrigin);
   Collider colP = ColliderSolid(3, 22);
-  ColliderSetLayer(ecs, &colP, "player");
   AddComponent(ecs, P, Collider, colP);
   AddComponent(ecs, P, CollisionListener, {OnCollisionHandler});
   AddComponent(ecs, P, RigidBody, RigidBodyKinematic(50, 1.5f));
@@ -164,8 +163,6 @@ void LoadScene(ECS *ecs) {
   AddScript(ecs, P, ScriptImpulse, EcsOnFixedUpdate);
   AddScript(ecs, P, ScriptShowData, EcsOnRender);
   AddScript(ecs, P, ScriptGui, EcsOnGui);
-
-  DebugCollisionLayers(ecs);
 
   System(ecs, DebugColliderSystem, EcsOnRender, Transform2, Collider);
 }

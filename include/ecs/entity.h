@@ -52,10 +52,9 @@ typedef uint64_t Signature;
 /**
  * Entity metadata and state management component.
  *
- * Provides entity tagging, activity/visibility control, and component
- * signature information for entity management and system filtering.
- * 
- * @note This component is automatically added to entities created with EcsEntity()
+ * Provides entity tagging, activity/visibility control, rendering layer, and
+ * component signature information for entity management and system filtering.
+ *
  * @see EntitySetActive() to control activity state
  * @see EntitySetVisible() to control visibility state
  * @see EntityFindByTag() to find entities by tag
@@ -64,7 +63,8 @@ typedef struct {
   Signature signature; ///< Component signature bitmask for system filtering
   bool active;         ///< Whether entity participates in Update systems
   bool visible;        ///< Whether entity participates in Render systems
-  char *tag;          ///< Entity identifier string for lookup and debugging
+  char *tag;           ///< Entity identifier string for lookup and debugging
+  uint8_t layer;       ///< Layer used for rendering and collisions
 } EntityData;
 
 #endif

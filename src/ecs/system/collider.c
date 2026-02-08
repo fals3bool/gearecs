@@ -1,8 +1,6 @@
 #include <ecs/component.h>
 #include <ecs/system.h>
 
-#include <service/layers.h>
-
 void TransformColliderSystem(ECS *ecs, Entity e) {
   Transform2 *t = GetComponent(ecs, e, Transform2);
   Collider *c = GetComponent(ecs, e, Collider);
@@ -155,6 +153,7 @@ void CollisionSystem(ECS *ecs, Entity self) {
   Transform2 *ta = GetComponent(ecs, self, Transform2);
   Collider *ca = GetComponent(ecs, self, Collider);
   RigidBody *ra = GetComponent(ecs, self, RigidBody);
+  uint8_t la = EcsEntityData(ecs, self)->layer;
 
   Signature mask = EcsSignature(ecs, Transform2, Collider);
   for (Entity other = self + 1; other < EcsEntityCount(ecs); ++other) {
@@ -166,10 +165,11 @@ void CollisionSystem(ECS *ecs, Entity self) {
     Transform2 *tb = GetComponent(ecs, other, Transform2);
     Collider *cb = GetComponent(ecs, other, Collider);
     RigidBody *rb = GetComponent(ecs, other, RigidBody);
+    uint8_t lb = EcsEntityData(ecs, other)->layer;
 
     Collision collision;
-    uint8_t overlap = LayerIncludesLayer(ecs, ca->layer, cb->layer) &&
-                      CollisionSat(ta, ca, tb, cb, &collision);
+    uint8_t overlap =
+        LayerIncludes(ecs, la, lb) && CollisionSat(ta, ca, tb, cb, &collision);
     if (overlap)
       HandleCollisionEvents(ecs, self, other, &collision);
 

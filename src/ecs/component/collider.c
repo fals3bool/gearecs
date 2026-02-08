@@ -1,6 +1,5 @@
 #include <ecs/component.h>
 
-#include <service/layers.h>
 #include <stdlib.h>
 
 Collider ColliderCreate(int vertices, float radius, bool solid) {
