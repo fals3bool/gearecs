@@ -40,8 +40,6 @@ ECS *EcsWorld(uint16_t max_entities, Camera2D camera) {
   System(ecs, SpriteSystem, EcsOnRender, Transform2, Sprite);
 
   AddLayer(ecs, "default");
-  AddLayer(ecs, "gui");
-  LayerDisableAll(ecs, "gui");
 
   background = (Color){23, 28, 29, 255};
   return ecs;
