@@ -56,6 +56,8 @@ void EcsFreeLayers(ECS *ecs);
 
 ECS *EcsRegistry(uint16_t max_entities) {
   ECS *ecs = malloc(sizeof(ECS));
+  ecs->layers = NULL;
+  ecs->layer_count = 0;
   ecs->components = NULL;
   ecs->comp_alloc = 0;
   ecs->comp_count = 0;
@@ -414,10 +416,10 @@ uint8_t LayerIndex(ECS *ecs, char *name) {
 void AddLayer(ECS *ecs, char *name) {
   uint8_t new_count = ecs->layer_count + 1;
   Layer *new_layers;
-  if (ecs->layers)
-    new_layers = realloc(ecs->layers, sizeof(Layer) * new_count);
-  else
+  if (!ecs->layers)
     new_layers = malloc(sizeof(Layer) * new_count);
+  else
+    new_layers = realloc(ecs->layers, sizeof(Layer) * new_count);
 
   if (!new_layers)
     return;
