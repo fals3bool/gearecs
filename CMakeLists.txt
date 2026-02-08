@@ -62,9 +62,9 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} raylib)
 
 # Examples
-option(FALSECS_BUILD_EXAMPLES "Build falsecs examples" ON)
+option(GEARECS_BUILD_EXAMPLES "Build falsecs examples" ON)
 
-if(FALSECS_BUILD_EXAMPLES)
+if(GEARECS_BUILD_EXAMPLES)
   file(GLOB EXAMPLE_SOURCES CONFIGURE_DEPENDS examples/*.c)
   foreach(example_src ${EXAMPLE_SOURCES})
     get_filename_component(name ${example_src} NAME_WE)

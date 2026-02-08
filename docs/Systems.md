@@ -1,62 +1,79 @@
 # Systems
 
-Systems run under different execution layers:
+Systems are functions that process entities with specific components
 
-1. **OnStart** - Initialization (runs once)
-2. **OnUpdate** - Frame-dependent game logic
-3. **OnLateUpdate** - Post-processing
-4. **OnFixedUpdate** - Physics (fixed timestep 60/s)
-5. **OnRender** - Drawing operations
-6. **OnGui** - UI overlay
+## System Execution Layers
 
-Use the macro System() to register a system under a execution layer and a set of components
-To run the list of systems there is a function EcsRunSystems()
+gearecs organizes systems into distinct execution layers that run in a specific order each frame.
 
-## Create and run systems
+1. `EcsOnStart` - Initialization
+2. `EcsOnUpdate` - Frame-dependent game logic
+3. `EcsOnLateUpdate` - Post-processing
+4. `EcsOnFixedUpdate` - Physics simulation (fixed timestep)
+5. `EcsOnRender` - Drawing operations
+6. `EcsOnGui` - UI overlay
+
+## Creating Systems
 
 ```C
-typedef struct {
-    float x;
-    float y;
-} Position;
+void SystemName(ECS *ecs, Entity entity);
+```
 
-void MoveUpSystem(ECS *world, Entity e){
-    Position *p = GetComponent(world, e, Position);
-    p.y--;
+- `ecs`: Pointer to the ECS registry/world
+- `entity`: The current entity being processed
+
+Example System
+
+```C
+// Movement system that processes entities with Position and Input components
+void MovementSystem(ECS *ecs, Entity entity) {
+    Position *pos = GetComponent(ecs, entity, Position);
+    Input *input = GetComponent(ecs, entity, Input);
+    if (input->left)
+        pos->x -= GetFrameTime();
+    if (input->right)
+        pos->x += GetFrameTime();
+    if (input->up)
+        pos->y -= GetFrameTime();
+    if (input->down)
+        pos->y += GetFrameTime();
 }
+```
 
-void foo() {
-    ECS *world = EcsRegistry(32);
-    Component(world, Position);
-    // Will only execute for entities that have a Position component
-    System(world, MoveUpSystem, EcsOnUpdate, Position); 
+## Registering Systems
 
-    Entity entity = EcsEntity(world, "entity");
-    AddComponent(world, entity, Position, {0, 200});
+The `System()` macro registers a system to run in a specific layer and process entities with required components:
+
+```C
+System(ecs, MovementSystem, EcsOnUpdate, Position, Input);
+```
+
+## Running Systems
+
+```C
+EcsRunSystems(ecs, EcsOnStart);
+while (!WindowShouldClose()) {
+    EcsRunSystems(ecs, EcsOnUpdate);
+    EcsRunSystems(ecs, EcsOnLateUpdate);
     
-    EcsRunSystems(world, EcsOnUpdate); // Run all update systems
+    BeginDrawing();
+    EcsRunSystems(ecs, EcsOnRender);
+    EndDrawing();
 }
 ```
 
-## GearEcs default systems
+## Built-in Systems
 
-```C
-System(ecs, BehaviourStartSystem, EcsOnStart, Behaviour);
-System(ecs, BehaviourUpdateSystem, EcsOnUpdate, Behaviour);
-System(ecs, BehaviourLateSystem, EcsOnLateUpdate, Behaviour);
-System(ecs, BehaviourFixedSystem, EcsOnFixedUpdate, Behaviour);
-System(ecs, BehaviourRenderSystem, EcsOnRender, Behaviour);
-System(ecs, BehaviourGuiSystem, EcsOnGui, Behaviour);
+gearecs provides several built-in systems that handle common game functionality:
 
-System(ecs, HierarchyTransformSystem, EcsOnUpdate, Transform2, Parent);
-System(ecs, TransformColliderSystem, EcsOnUpdate, Transform2, Collider);
-System(ecs, CollisionSystem, EcsOnUpdate, Transform2, Collider);
+- **HierarchyTransformSystem**: Updates child transforms based on parent transforms
+- **TransformColliderSystem**: Synchronizes collider positions with transform positions
+- **CollisionSystem**: Detects and resolves collisions between entities
 
-System(ecs, GravitySystem, EcsOnFixedUpdate, RigidBody);
-System(ecs, PhysicsSystem, EcsOnFixedUpdate, RigidBody, Transform2);
+- **GravitySystem**: Applies gravitational forces to rigid bodies
+- **PhysicsSystem**: Handles velocity, forces, and integration for rigid bodies
 
-System(ecs, SpriteSystem, EcsOnRender, Transform2, Sprite);
+- **SpriteSystem**: Renders sprite components
+- **DebugColliderSystem**: Draws collider bounds and collision events (for debugging)
 
-// debug, not registered by default
-System(ecs, DebugColliderSystem, EcsOnRender, Transform2, Collider);
-```
+

@@ -39,7 +39,6 @@ int main(void) {
   e1 = EcsEntity(world, "e1");
   PRINT_ID(world, e1);
 
-  // REGISTER AND ADD COMPONENT
   Component(world, Position);
   AddComponent(world, e1, Position, {23, 25});
 

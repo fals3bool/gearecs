@@ -42,8 +42,8 @@
  * Example:
  * ```c
  * Camera2D camera = {0};
- * camera.target = (Vector2){400, 300};
- * camera.offset = (Vector2){400, 300};
+ * camera.target = (Vector2){0, 0};
+ * camera.offset = (Vector2){GetScreenWidth() / 2, GetScreenHeight() / 2};
  * camera.rotation = 0.0f;
  * camera.zoom = 1.0f;
  *

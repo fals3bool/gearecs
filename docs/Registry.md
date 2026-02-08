@@ -1,50 +1,74 @@
-# ECS Registry
+# Registry
 
-- **Entities** are just unique IDs that represent game objects
-- **Components** are data containers (position, velocity, health, etc.)
-- **Systems** are functions that operate on entities with specific components
+The Registry is the core of gearecs, providing low-level management of entities, components, and systems. It implements the fundamental ECS pattern:
 
-## Using the registry
+- **Entities**: Unique identifiers representing game objects
+- **Components**: Data containers (position, velocity, health, etc.)
+- **Systems**: Functions that process entities with specific components
+
+## Creating a Registry
 
 ```C
-typedef struct {
-    int left;
-    int right;
-} UserInput;
+// Create a registry that can hold up to 1024 entities
+ECS *world = EcsRegistry(1024);
 
-typedef struct {
-    float x;
-    float y;
-} Vector2;
+// When done, free all allocated memory
+EcsFree(world);
+```
 
-typedef struct {
-    Vector2 position;
-    Vector2 scale;
-    float rotation;
-} Transform;
+- Maximum entities: 65536 (uint16_t limit)
+- Each registry manages its own memory pool
+- Components are stored in contiguous arrays for cache efficiency
 
-void MoveSystem(ECS *ecs, Entity e) {
-    Transform *t = GetComponent(ecs, e, Transform);
-    UserInput *input = GetComponent(ecs, e, UserInput);
-    if(input->left)
-        t->position.x--;
-    if(input->right)
-        t->position.x++;
-}
+## Entity Management
 
-void foo() {
-    ECS *world = EcsRegistry(32);
+### Creating Entities
 
-    Component(world, UserInput);
-    Component(world, Transform);
-    System(world, MoveSystem, EcsOnUpdate, Transform, UserInput);
+```C
+// Create a new entity with a tag name (nullable)
+Entity player = EcsEntity(world, "player");
+Entity enemy = EcsEntity(world, NULL);
+```
 
-    Entity player = EcsEntity(world, "Player");
-    AddComponent(world, player, UserInput, {0});
-    AddComponent(world, player, Transform, {0});
+### Finding Entities
 
-    while(WindowShouldClose() == false) {
-        EcsRunSystems(world, EcsOnUpdate);
-    }
+```C
+Entity foundPlayer = EntityFindByTag(world, "player");
+
+if (foundPlayer != InvalidID) {
+    // Entity exists
 }
 ```
+
+### Entity State Management
+
+Every entity has two important flags:
+
+- **Active**: Determines if the entity participates in system processing
+- **Visible**: Determines if the entity is rendered (used by rendering systems)
+
+```C
+EntitySetActive(world, entity, true);   // Enable processing
+EntitySetActive(world, entity, false);  // Disable processing
+
+EntitySetVisible(world, entity, true);   // Show entity
+EntitySetVisible(world, entity, false);  // Hide entity
+```
+
+```C
+EntityData *ed = EcsEntityData(world, entity);
+if (ed) {
+    printf("Entity: %d", entity);
+    printf("Tag: %s", ed->tag);
+    printf("Active: %s", ed->active ? "Yes" : "No");
+    printf("Visible: %s", ed->visible ? "Yes" : "No");
+}
+```
+
+### Removing Entities
+
+```C
+EcsEntityFree(world, entity);
+```
+
+
