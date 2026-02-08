@@ -222,6 +222,7 @@ void EcsFreeComponents(ECS *ecs) {
   }
 
   free(ecs->components);
+  free(ecs->search);
   ecs->components = NULL;
   ecs->comp_alloc = 0;
 }

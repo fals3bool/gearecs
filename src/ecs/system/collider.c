@@ -33,30 +33,51 @@ static uint8_t SatProj(Collider *ca, Collider *cb, float *min_distance,
   for (uint8_t i = 0; i < ca->vertices; i++) {
     uint8_t j = (i + 1) % ca->vertices;
 
-    Vector2 proj = {-(ca->vx[j].y - ca->vx[i].y), ca->vx[j].x - ca->vx[i].x};
-    proj = Vector2Normalize(proj);
+    float edge_x = ca->vx[j].x - ca->vx[i].x;
+    float edge_y = ca->vx[j].y - ca->vx[i].y;
+
+    float normal_x = -edge_y;
+    float normal_y = edge_x;
+
+    float length_sq = normal_x * normal_x + normal_y * normal_y;
+    if (length_sq == 0.0f)
+      continue;
+
+    float inv_length = 1.0f / sqrtf(length_sq);
+    normal_x *= inv_length;
+    normal_y *= inv_length;
 
     float min_r1 = INFINITY, max_r1 = -INFINITY;
+    Vector2 *v_a = ca->vx;
     for (uint8_t p = 0; p < ca->vertices; p++) {
-      float q = (ca->vx[p].x * proj.x + ca->vx[p].y * proj.y);
-      min_r1 = fminf(min_r1, q);
-      max_r1 = fmaxf(max_r1, q);
+      float projection = v_a[p].x * normal_x + v_a[p].y * normal_y;
+      if (projection < min_r1)
+        min_r1 = projection;
+      if (projection > max_r1)
+        max_r1 = projection;
     }
 
     float min_r2 = INFINITY, max_r2 = -INFINITY;
+    Vector2 *v_b = cb->vx;
     for (uint8_t p = 0; p < cb->vertices; p++) {
-      float q = (cb->vx[p].x * proj.x + cb->vx[p].y * proj.y);
-      min_r2 = fminf(min_r2, q);
-      max_r2 = fmaxf(max_r2, q);
+      float projection = v_b[p].x * normal_x + v_b[p].y * normal_y;
+      if (projection < min_r2)
+        min_r2 = projection;
+      if (projection > max_r2)
+        max_r2 = projection;
     }
 
-    float over = fminf(max_r1, max_r2) - fmaxf(min_r1, min_r2);
-    if (over <= 0)
+    // Check for separation - early exit if no overlap
+    float overlap = (max_r1 < max_r2 ? max_r1 : max_r2) -
+                    (min_r1 > min_r2 ? min_r1 : min_r2);
+    if (overlap <= 0.0f)
       return false;
 
-    if (over < *min_distance) {
-      *min_distance = over;
-      *axis = proj;
+    // Track minimum overlap and axis
+    if (overlap < *min_distance) {
+      *min_distance = overlap;
+      axis->x = normal_x;
+      axis->y = normal_y;
     }
   }
   return true;
