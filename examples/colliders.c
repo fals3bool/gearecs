@@ -174,6 +174,7 @@ int main(void) {
 
   ECS *ecs = EcsWorld(32, cam);
   LoadScene(ecs);
+  DebugECS(ecs);
   EcsLoop(ecs);
 
   EcsFree(ecs);
