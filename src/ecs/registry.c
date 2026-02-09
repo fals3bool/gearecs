@@ -200,9 +200,7 @@ void EcsFreeSystems(ECS *ecs) {
 //  REGISTRY  //
 // ########## //
 
-// TODO: Remove max_entities arg
-ECS *EcsRegistry(uint16_t max_entities) {
-  (void)max_entities;
+ECS *EcsRegistry(void) {
   ECS *ecs = malloc(sizeof(ECS));
   EcsInitEntities(ecs);
   EcsInitComponents(ecs);

@@ -32,7 +32,7 @@ void printHierarchy(ECS *ecs, Entity e) {
 
 int main(void) {
 
-  ECS *ecs = EcsRegistry(32);
+  ECS *ecs = EcsRegistry();
   Component(ecs, Transform2);
   Component(ecs, Parent);
   ComponentDynamic(ecs, Children, ChildrenDestructor);

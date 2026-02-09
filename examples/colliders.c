@@ -172,7 +172,7 @@ int main(void) {
   InitWindow(SCREEN_W, SCREEN_H, "Colliders & RigidBodies");
   Camera2D cam = {{SCREEN_W / 2.f, SCREEN_H / 2.f}, {0, 0}, 0, 1.f};
 
-  ECS *ecs = EcsWorld(32, cam);
+  ECS *ecs = EcsWorld(cam);
   LoadScene(ecs);
   DebugECS(ecs);
   EcsLoop(ecs);

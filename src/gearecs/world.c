@@ -7,8 +7,8 @@
 static float fixed_time; ///< Accumulator for fixed timestep integration
 static Color background; ///< Window background color
 
-ECS *EcsWorld(uint16_t max_entities, Camera2D camera) {
-  ECS *ecs = EcsRegistry(max_entities);
+ECS *EcsWorld(Camera2D camera) {
+  ECS *ecs = EcsRegistry();
 
   Component(ecs, Transform2);
   Component(ecs, Behaviour);

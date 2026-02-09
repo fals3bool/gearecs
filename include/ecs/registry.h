@@ -97,7 +97,7 @@ typedef struct {
  *
  * @see EcsFree() to clean up registry
  */
-ECS *EcsRegistry(uint16_t max_entities);
+ECS *EcsRegistry(void);
 
 /**
  * Destroys an ECS registry and frees all allocated memory.

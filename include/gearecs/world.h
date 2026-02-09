@@ -54,7 +54,7 @@
  * @see EcsFree() for freeing the world when done
  * @see EcsRegistry() for creating a basic empty registry
  */
-ECS *EcsWorld(uint16_t max_entities, Camera2D camera);
+ECS *EcsWorld(Camera2D camera);
 
 /**
  * Runs the main ECS game loop with proper phase ordering.

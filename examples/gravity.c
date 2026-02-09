@@ -31,7 +31,7 @@ int main(void) {
   InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Getting Started with GearECS!");
   Camera2D camera = {{SCREEN_WIDTH / 2.f, SCREEN_HEIGHT / 2.f}, {0, 0}, 0, 1};
 
-  ECS *world = EcsWorld(32, camera);
+  ECS *world = EcsWorld(camera);
   System(world, DebugColliderSystem, EcsOnRender, Collider, Transform2);
 
   Entity box = EcsEntity(world, "box");
