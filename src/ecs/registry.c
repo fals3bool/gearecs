@@ -26,7 +26,7 @@ typedef struct {
   System *list;
   EcsID size;
   EcsID alloc;
-} LayerSystems;
+} PhaseSystem;
 
 typedef struct {
   char *name;
@@ -54,7 +54,7 @@ struct Registry {
   Component comp_count;
   Component comp_alloc;
 
-  LayerSystems *systems; // Systems with phases
+  PhaseSystem *systems; // Systems with phases
 
   Layer *layers;         // Layer stack (order + collision)
   LayerEntities *render; // Render entities stack
@@ -75,15 +75,16 @@ void DebugECS(ECS *ecs) {
   for (Component i = 0; i < ecs->comp_count; i++)
     printf("      {id: %u, name: %s},\n", ecs->search[i].id,
            ecs->search[i].name);
-  printf("    ],\n  },\n  Systems: {\n    List: %d [\n", EcsTotalLayers);
-  for (int i = 0; i < EcsTotalLayers; i++)
+  printf("    ],\n  },\n  Systems: {\n    List: %d [\n", EcsTotalPhases);
+  for (int i = 0; i < EcsTotalPhases; i++)
     printf("      {phase: %d, count: %u, alloc: %u},\n", i,
            ecs->systems[i].size, ecs->systems[i].alloc);
   printf("    ],\n  },\n  Layers: len:%u (alloc:%u) [\n", ecs->layer_count,
          ecs->layer_alloc);
   for (EcsID i = 0; i < ecs->layer_count; i++)
-    printf("      {name: %s, entities: %d (alloc: %d), mask: %lb},\n", ecs->layers[i].name,
-           ecs->render[i].count, ecs->render[i].alloc, ecs->layers[i].mask);
+    printf("      {name: %s, entities: %d (alloc: %d), mask: %lb},\n",
+           ecs->layers[i].name, ecs->render[i].count, ecs->render[i].alloc,
+           ecs->layers[i].mask);
   printf("    ],\n  },\n}\n");
 }
 
@@ -186,11 +187,11 @@ void EcsFreeComponents(ECS *ecs) {
 }
 
 static void EcsInitSystems(ECS *ecs) {
-  ecs->systems = calloc(EcsTotalLayers, sizeof(LayerSystems));
+  ecs->systems = calloc(EcsTotalPhases, sizeof(PhaseSystem));
 }
 
 void EcsFreeSystems(ECS *ecs) {
-  for (int i = 0; i < EcsTotalLayers; i++)
+  for (int i = 0; i < EcsTotalPhases; i++)
     free(ecs->systems[i].list);
   free(ecs->systems);
   ecs->systems = NULL;
@@ -466,29 +467,29 @@ Signature EcsSignatureImpl(ECS *ecs, const char *str) {
 //  SYSTEMS  //
 // ######### //
 
-void EcsAddSystem(ECS *ecs, Script s, EcsLayer ly, Signature mask) {
-  if (ly >= EcsTotalLayers)
+void EcsAddSystem(ECS *ecs, Script s, EcsPhase phase, Signature mask) {
+  if (phase >= EcsTotalPhases)
     return;
 
   System sys = {s, mask};
-  EcsID alloc =
-      EcsPushToArray((void **)&ecs->systems[ly].list, ecs->systems[ly].alloc,
-                     ecs->systems[ly].size, &sys, sizeof(System));
+  EcsID alloc = EcsPushToArray((void **)&ecs->systems[phase].list,
+                               ecs->systems[phase].alloc,
+                               ecs->systems[phase].size, &sys, sizeof(System));
   if (alloc == InvalidID)
     return;
 
-  ecs->systems[ly].alloc = alloc;
-  ecs->systems[ly].size++;
+  ecs->systems[phase].alloc = alloc;
+  ecs->systems[phase].size++;
 }
 
-void EcsRunSystems(ECS *ecs, EcsLayer ly) {
-  size_t len = ecs->systems[ly].size;
-  System *list = ecs->systems[ly].list;
+void EcsRunSystems(ECS *ecs, EcsPhase phase) {
+  size_t len = ecs->systems[phase].size;
+  System *list = ecs->systems[phase].list;
   if (!list)
     return;
 
   // for update systems
-  if (ecs->layer_count == 0 || ly < EcsOnRender) {
+  if (ecs->layer_count == 0 || phase < EcsOnRender) {
     for (size_t s = 0; s < len; s++) {
       for (Entity e = 0; e < ecs->entity_count; e++) {
         if (EcsHasComponents(ecs, e, list[s].mask) && EntityIsActive(ecs, e))

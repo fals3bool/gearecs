@@ -414,7 +414,7 @@ typedef struct {
 typedef struct {
   Script OnEnable;                ///< Script called when entity is enabled
   Script OnDisable;               ///< Script called when entity is disabled
-  Script scripts[EcsTotalLayers]; ///< Scripts for each ecs layer
+  Script scripts[EcsTotalPhases]; ///< Scripts for each ecs layer
 } Behaviour;
 
 /**
@@ -430,7 +430,7 @@ typedef struct {
  *
  * Example: AddScript(world, player, PlayerUpdate, EcsOnUpdate);
  */
-void AddScript(ECS *ecs, Entity e, Script s, EcsLayer ly);
+void AddScript(ECS *ecs, Entity e, Script s, EcsPhase phase);
 
 // ########### //
 //  HIERARCHY  //

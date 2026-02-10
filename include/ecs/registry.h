@@ -481,8 +481,8 @@ typedef enum {
   EcsOnFixedUpdate, ///< Fixed timestep physics/consistent logic
   EcsOnRender,      ///< Rendering operations
   EcsOnGui,         ///< UI and overlay rendering
-  EcsTotalLayers    ///< Total number of system layers
-} EcsLayer;
+  EcsTotalPhases    ///< Total number of system phases
+} EcsPhase;
 
 /**
  * Creates a component signature from component type names.
@@ -557,7 +557,7 @@ Signature EcsSignatureImpl(ECS *ecs, const char *str);
  * @param ly Execution layer
  * @param mask Component signature for entity filtering
  */
-void EcsAddSystem(ECS *ecs, Script s, EcsLayer ly, Signature mask);
+void EcsAddSystem(ECS *ecs, Script s, EcsPhase phase, Signature mask);
 
 /**
  * Runs all systems in a specific execution layer.
@@ -573,7 +573,7 @@ void EcsAddSystem(ECS *ecs, Script s, EcsLayer ly, Signature mask);
  *
  * Example: EcsRunSystems(ecs, EcsOnUpdate); // Run all update systems
  */
-void EcsRunSystems(ECS *ecs, EcsLayer ly);
+void EcsRunSystems(ECS *ecs, EcsPhase phase);
 
 // ######## //
 //  LAYERS  //
