@@ -458,12 +458,22 @@ Component EcsComponentID(ECS *ecs, char *name);
 // ######### //
 
 /**
+ * Fixed frames for physics and consistent gameplay.
+ *
+ * Used by FixedUpdate systems to ensure deterministic physics simulation
+ * regardless of frame rate variations.
+ */
+#ifndef FIXED_UPDATES
+#define FIXED_UPDATES 60
+#endif
+
+/**
  * Fixed timestep for physics and consistent gameplay.
  *
  * Used by FixedUpdate systems to ensure deterministic physics simulation
  * regardless of frame rate variations.
  */
-#define FIXED_DELTATIME 1.f / 60.f
+#define FIXED_DELTATIME 1.f / FIXED_UPDATES
 
 /**
  * System execution phases define when systems run in the game loop.

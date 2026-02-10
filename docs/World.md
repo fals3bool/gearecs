@@ -1,6 +1,6 @@
 # World
 
-The World is gearecs's high-level API that provides a complete game development environment. It builds upon the Registry by:
+The World is a high-level wrapper that provides a complete game development environment. It builds upon the Registry by:
 
 - Automatically registering all built-in components (Transform2, RigidBody, Collider, Sprite, etc.)
 - Registering all built-in systems (physics, collision, rendering, etc.)
@@ -26,14 +26,9 @@ Use World when you need:
 ```C
 #include <gearecs.h>
 
-#define SCREEN_WIDTH 800
-#define SCREEN_HEIGHT 450
 
 int main(void) {
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Getting Started with Gearecs");
-    Camera2D camera = {0};
-    camera.offset = (Vector2){SCREEN_WIDTH/2, SCREEN_HEIGHT/2};
-    camera.zoom = 1.f;
+    InitWindow(800, 450, "Getting Started with Gearecs");
 
     ECS *world = EcsWorld(camera);
     
@@ -49,4 +44,25 @@ int main(void) {
 }
 ```
 
+### World Camera
 
+```C
+Transform2 *transform = GetComponent(world, player, Transform2);
+Camera2D *camera = WorldMainCamera(world);
+camera.target = transform.position;
+```
+
+### Custom FixedUpdate
+
+Define `FIXED_UPDATES` before including the gearecs header.
+
+```C
+#define FIXED_UPDATES 144
+
+#include <gearecs.h>
+
+void foo() {
+    ECS *world = EcsWorld();
+    EcsLoop(world); // EcsOnFixedUpdate 144 times per second
+}
+```

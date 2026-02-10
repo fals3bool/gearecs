@@ -2,9 +2,6 @@
 
 #include <stdio.h>
 
-#define SCREEN_W 800
-#define SCREEN_H 450
-
 void ScriptMove(ECS *ecs, Entity self) {
   Transform2 *t = GetComponent(ecs, self, Transform2);
   RigidBody *rb = GetComponent(ecs, self, RigidBody);
@@ -58,7 +55,7 @@ void ScriptGui(ECS *ecs, Entity self) {
   DrawText("Switch RigidBody: [SPACE]", 10, 50, 16, WHITE);
   char fpstxt[10];
   snprintf(fpstxt, 10, "FPS: %d", GetFPS());
-  DrawText(fpstxt, SCREEN_W - 90, 10, 16, WHITE);
+  DrawText(fpstxt, 700, 10, 16, WHITE);
 }
 
 void ScriptShowData(ECS *ecs, Entity self) {
@@ -168,17 +165,14 @@ void LoadScene(ECS *ecs) {
 }
 
 int main(void) {
+  InitWindow(800, 450, "Colliders & RigidBodies");
 
-  InitWindow(SCREEN_W, SCREEN_H, "Colliders & RigidBodies");
-  Camera2D cam = {{SCREEN_W / 2.f, SCREEN_H / 2.f}, {0, 0}, 0, 1.f};
-
-  ECS *ecs = EcsWorld(cam);
+  ECS *ecs = EcsWorld();
   LoadScene(ecs);
   DebugECS(ecs);
   EcsLoop(ecs);
 
   EcsFree(ecs);
   CloseWindow();
-
   return 0;
 }
