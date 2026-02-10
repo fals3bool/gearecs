@@ -9,16 +9,16 @@ The Registry is the core of gearecs, providing low-level management of entities,
 ## Creating a Registry
 
 ```C
-// Create a registry that can hold up to 1024 entities
-ECS *world = EcsRegistry(1024);
+// Create a registry (uses dynamic arrays, no fixed limit)
+ECS *world = EcsRegistry();
 
 // When done, free all allocated memory
 EcsFree(world);
 ```
 
-- Maximum entities: 65536 (uint16_t limit)
+- Entities use dynamic arrays that grow as needed (max 65536 due to uint16_t)
 - Each registry manages its own memory pool
-- Components are stored in contiguous arrays for cache efficiency
+- Components are stored in dynamic arrays for cache efficiency
 
 ## Entity Management
 

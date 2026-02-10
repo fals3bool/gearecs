@@ -2,9 +2,9 @@
 
 Systems are functions that process entities with specific components
 
-## System Execution Layers
+## System Execution Phases
 
-gearecs organizes systems into distinct execution layers that run in a specific order each frame.
+gearecs organizes systems into distinct execution phases that run in a specific order each frame.
 
 1. `EcsOnStart` - Initialization
 2. `EcsOnUpdate` - Frame-dependent game logic
@@ -42,7 +42,7 @@ void MovementSystem(ECS *ecs, Entity entity) {
 
 ## Registering Systems
 
-The `System()` macro registers a system to run in a specific layer and process entities with required components:
+The `System()` macro registers a system to run in a specific phase and process entities with required components:
 
 ```C
 System(ecs, MovementSystem, EcsOnUpdate, Position, Input);

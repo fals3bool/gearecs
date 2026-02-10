@@ -35,7 +35,7 @@ int main(void) {
     camera.offset = (Vector2){SCREEN_WIDTH/2, SCREEN_HEIGHT/2};
     camera.zoom = 1.f;
 
-    ECS *world = EcsWorld(32, camera);
+    ECS *world = EcsWorld(camera);
     
     // Your game logic here
     

@@ -18,7 +18,7 @@
  * - EcsID type to identify entities and components
  * - User-friendly CRUD API for entities and components
  * - Component registration and management with automatic memory layout
- * - System execution layers (Update, FixedUpdate, Render, etc.)
+ * - System execution phases (Update, FixedUpdate, Render, etc.)
  * - Signatures (bitmasks) for component filtering
  */
 
@@ -46,7 +46,8 @@ void DebugECS(ECS *ecs);
  * Components define entities by storing data that represents specific aspects.
  *
  * A component represents one aspect of an entity (position, velocity, health,
- * etc.).
+ * etc.). Components are stored in dynamic arrays that grow as entities are
+ * added.
  *
  * @see Component() for registration
  * @see AddComponent() to attach component to entities
@@ -87,12 +88,12 @@ typedef struct {
 } System;
 
 /**
- * Creates a new ECS registry with specified entity capacity.
+ * Creates a new ECS registry.
  *
  * Allocates memory for entities, components, and systems. The registry
  * manages all ECS operations and must be freed with EcsFree() when done.
+ * Uses dynamic arrays that grow as needed, no fixed entity limit.
  *
- * @param max_entities Maximum number of entities that can be created
  * @return Pointer to new ECS registry, NULL on allocation failure
  *
  * @see EcsFree() to clean up registry
@@ -181,17 +182,16 @@ void EcsForEachEntity(ECS *ecs, Script script);
 // ######### //
 
 /**
- * Gets the EntityData component for an entity.
+ * Gets the EntityData for an entity.
  *
- * Returns a pointer to the entity's EntityData component which contains
- * metadata like tag, active/visible status, and component signature.
+ * Returns a pointer to the entity's EntityData which contains
+ * metadata like nametag, active/visible status, layer, and component signature.
  *
  * @param ecs Registry containing the entity
  * @param e Entity to get data for
- * @return Pointer to EntityData component, or NULL if not found
+ * @return Pointer to EntityData
  *
- * @see EntityData struct for component details
- * @see EntityFindByTag() to find entities by tag
+ * @see EntityData struct for data details
  */
 EntityData *EcsEntityData(ECS *ecs, Entity e);
 
@@ -205,9 +205,11 @@ EntityData *EcsEntityData(ECS *ecs, Entity e);
  * @param tag Tag string to search for
  * @return Entity with matching tag, or invalid id value if not found
  *
- * Example: if(EntityFindByTag(ecs, "Player2") == EcsEntityCount())
- *
+ * Example:
+ * ```
+ * if(EntityFindByTag(ecs, "Player2") == InvalidID)
  *    printf("Not Found\n");
+ * ```
  */
 Entity EntityFindByTag(ECS *ecs, char *tag);
 
@@ -464,7 +466,7 @@ Component EcsComponentID(ECS *ecs, char *name);
 #define FIXED_DELTATIME 1.f / 60.f
 
 /**
- * System execution layers define when systems run in the game loop.
+ * System execution phases define when systems run in the game loop.
  *
  * Systems are organized into logical phases that run in order:
  * 1. Start - Runs once at initialization
@@ -514,7 +516,7 @@ Signature EcsSignatureImpl(ECS *ecs, const char *str);
  * Creates a system that processes entities with specific components.
  *
  * Macro that combines a script function with component filtering and
- * assigns it to a specific execution layer. The system will only run
+ * assigns it to a specific execution phase. The system will only run
  * on entities that have ALL specified components.
  *
  * @note The maximum component number per system is 8.
@@ -560,9 +562,9 @@ Signature EcsSignatureImpl(ECS *ecs, const char *str);
 void EcsAddSystem(ECS *ecs, Script s, EcsPhase phase, Signature mask);
 
 /**
- * Runs all systems in a specific execution layer.
+ * Runs all systems in a specific execution phase.
  *
- * Iterates through all systems in the layer and executes them on entities
+ * Iterates through all systems in the phase and executes them on entities
  * that match their component signatures and current active/visible state.
  *
  * Update systems (Start, Update, LateUpdate, FixedUpdate) only run on
@@ -583,8 +585,9 @@ void EcsRunSystems(ECS *ecs, EcsPhase phase);
  * @brief Adds a new layer to the ECS registry.
  *
  * Creates a new layer with collision enabled for all other layers by default.
- * Layers are used for both collision filtering and render ordering.
- * Each layer can interact with up to 64 other layers through bitmask filtering.
+ * Layers are managed by the registry and used for both collision filtering
+ * and render ordering. Each layer can interact with up to 64 other layers
+ * through bitmask filtering.
  *
  * @param ecs Registry to add the layer to
  * @param name Layer name

@@ -32,7 +32,6 @@
  * - Built-in systems (physics, rendering, collision, etc.)
  * - Camera integration for 2D rendering
  *
- * @param max_entities Maximum number of entities the world can support.
  * @param camera Raylib Camera2D structure for 2D rendering viewport.
  * @return Pointer to created ECS world, or NULL on failure.
  *
@@ -47,7 +46,7 @@
  * camera.rotation = 0.0f;
  * camera.zoom = 1.0f;
  *
- * ECS *world = EcsWorld(4096, camera);
+ * ECS *world = EcsWorld(camera);
  * ```
  *
  * @see EcsLoop() for running the main game loop
@@ -61,7 +60,7 @@ ECS *EcsWorld(Camera2D camera);
  *
  * This function implements the complete game loop that processes
  * all registered systems in their correct execution phases. It handles
- * the automatic calling of systems during their proper execution layer.
+ * the automatic calling of systems during their proper execution phase.
  *
  * The loop continues until the window is closed.
  *

@@ -17,7 +17,7 @@ Enables highly performant, cache-friendly code with excellent modularity and reu
 - **Built-in Components** - Transform2, RigidBody, Collider, Sprite, and more
 - **Physics Simulation** - Complete collision detection, forces, gravity, and rigid body dynamics
 - **Hierarchy Relationships** - Parent-child relationships for complex object structures
-- **Scripting** - Entity-specific logic across multiple execution layers
+- **Scripting** - Entity-specific logic across multiple execution phases
 - **Scene Management** - Automatic scene setup with camera and generic game loop
 - **Multi-platform Support** - Linux, Windows, Web...
 - **Raylib Integration** - Seamless rendering and input handling
@@ -77,7 +77,7 @@ int main(void) {
       {SCREEN_WIDTH / 2.0f, SCREEN_HEIGHT / 2.0f}, {0, 0}, 0, 1.0f};
 
   // Registry
-  ECS *world = EcsWorld(1024, camera);
+  ECS *world = EcsWorld(camera);
 
   // Player entity
   Texture tex = LoadTexture("res/example.png");

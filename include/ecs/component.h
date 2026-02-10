@@ -107,7 +107,8 @@ typedef struct {
  *
  * Supports both solid colliders (block movement) and trigger colliders
  * (detect overlap without blocking). Uses polygon-based collision with
- * configurable vertices and collision layers for selective interaction.
+ * configurable vertices. Collision filtering is handled through entity layers
+ * managed by the registry.
  */
 typedef struct {
   Vector2 *vx;      ///< Array of polygon vertices (local space)

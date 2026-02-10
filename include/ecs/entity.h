@@ -23,10 +23,10 @@ typedef uint16_t EcsID;
  * An entity represents a general purpose object in the game world.
  *
  * Entities are defined by their components - an entity with no components
- * still exists but has no behavior or properties. Entities are lightweight
- * and can be created/destroyed frequently.
+ * still exists but has no behavior or properties. Entities are managed
+ * in dynamic arrays that grow as needed, and IDs are recycled after 
+ * destruction for efficiency.
  *
- * @note Entity IDs are recycled after destruction for efficiency
  * @see Signature for component filtering
  * @see EcsEntity() to create entities
  * @see EcsEntityFree() to destroy an entity

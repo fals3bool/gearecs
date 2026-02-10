@@ -153,7 +153,7 @@ Gearecs provides several built-in components for common game functionality:
 
 **Collider**
 - Convex polygon collision detection
-- Layer-based collision filtering
+- Collision filtering through entity layers managed by registry
 
 **CollisionListener**
 - Collision event handlers
