@@ -18,7 +18,7 @@
  * - EcsID type to identify entities and components
  * - User-friendly CRUD API for entities and components
  * - Component registration and management with automatic memory layout
- * - System execution layers (Update, FixedUpdate, Render, etc.)
+ * - System execution phases (Update, FixedUpdate, Render, etc.)
  * - Signatures (bitmasks) for component filtering
  */
 
@@ -40,11 +40,14 @@
  */
 typedef struct Registry ECS;
 
+void EcsLogStatus(ECS *ecs);
+
 /**
  * Components define entities by storing data that represents specific aspects.
  *
  * A component represents one aspect of an entity (position, velocity, health,
- * etc.).
+ * etc.). Components are stored in dynamic arrays that grow as entities are
+ * added.
  *
  * @see Component() for registration
  * @see AddComponent() to attach component to entities
@@ -77,7 +80,7 @@ typedef void (*Script)(ECS *, Entity);
  * and can target entities based on their active/visible state.
  *
  * @see System() macro to create systems
- * @see EcsLayer for system execution phases
+ * @see EcsPhase for system execution phases
  */
 typedef struct {
   Script run;     ///< Function to execute for matching entities
@@ -85,17 +88,17 @@ typedef struct {
 } System;
 
 /**
- * Creates a new ECS registry with specified entity capacity.
+ * Creates a new ECS registry.
  *
  * Allocates memory for entities, components, and systems. The registry
  * manages all ECS operations and must be freed with EcsFree() when done.
+ * Uses dynamic arrays that grow as needed, no fixed entity limit.
  *
- * @param max_entities Maximum number of entities that can be created
  * @return Pointer to new ECS registry, NULL on allocation failure
  *
  * @see EcsFree() to clean up registry
  */
-ECS *EcsRegistry(uint16_t max_entities);
+ECS *EcsRegistry(void);
 
 /**
  * Destroys an ECS registry and frees all allocated memory.
@@ -179,17 +182,16 @@ void EcsForEachEntity(ECS *ecs, Script script);
 // ######### //
 
 /**
- * Gets the EntityData component for an entity.
+ * Gets the EntityData for an entity.
  *
- * Returns a pointer to the entity's EntityData component which contains
- * metadata like tag, active/visible status, and component signature.
+ * Returns a pointer to the entity's EntityData which contains
+ * metadata like nametag, active/visible status, layer, and component signature.
  *
  * @param ecs Registry containing the entity
  * @param e Entity to get data for
- * @return Pointer to EntityData component, or NULL if not found
+ * @return Pointer to EntityData
  *
- * @see EntityData struct for component details
- * @see EntityFindByTag() to find entities by tag
+ * @see EntityData struct for data details
  */
 EntityData *EcsEntityData(ECS *ecs, Entity e);
 
@@ -203,9 +205,11 @@ EntityData *EcsEntityData(ECS *ecs, Entity e);
  * @param tag Tag string to search for
  * @return Entity with matching tag, or invalid id value if not found
  *
- * Example: if(EntityFindByTag(ecs, "Player2") == EcsEntityCount())
- *
+ * Example:
+ * ```
+ * if(EntityFindByTag(ecs, "Player2") == InvalidID)
  *    printf("Not Found\n");
+ * ```
  */
 Entity EntityFindByTag(ECS *ecs, char *tag);
 
@@ -454,15 +458,25 @@ Component EcsComponentID(ECS *ecs, char *name);
 // ######### //
 
 /**
+ * Fixed frames for physics and consistent gameplay.
+ *
+ * Used by FixedUpdate systems to ensure deterministic physics simulation
+ * regardless of frame rate variations.
+ */
+#ifndef FIXED_UPDATES
+#define FIXED_UPDATES 60
+#endif
+
+/**
  * Fixed timestep for physics and consistent gameplay.
  *
  * Used by FixedUpdate systems to ensure deterministic physics simulation
  * regardless of frame rate variations.
  */
-#define FIXED_DELTATIME 1.f / 60.f
+#define FIXED_DELTATIME 1.f / FIXED_UPDATES
 
 /**
- * System execution layers define when systems run in the game loop.
+ * System execution phases define when systems run in the game loop.
  *
  * Systems are organized into logical phases that run in order:
  * 1. Start - Runs once at initialization
@@ -479,8 +493,8 @@ typedef enum {
   EcsOnFixedUpdate, ///< Fixed timestep physics/consistent logic
   EcsOnRender,      ///< Rendering operations
   EcsOnGui,         ///< UI and overlay rendering
-  EcsTotalLayers    ///< Total number of system layers
-} EcsLayer;
+  EcsTotalPhases    ///< Total number of system phases
+} EcsPhase;
 
 /**
  * Creates a component signature from component type names.
@@ -512,7 +526,7 @@ Signature EcsSignatureImpl(ECS *ecs, const char *str);
  * Creates a system that processes entities with specific components.
  *
  * Macro that combines a script function with component filtering and
- * assigns it to a specific execution layer. The system will only run
+ * assigns it to a specific execution phase. The system will only run
  * on entities that have ALL specified components.
  *
  * @note The maximum component number per system is 8.
@@ -555,12 +569,12 @@ Signature EcsSignatureImpl(ECS *ecs, const char *str);
  * @param ly Execution layer
  * @param mask Component signature for entity filtering
  */
-void EcsAddSystem(ECS *ecs, Script s, EcsLayer ly, Signature mask);
+void EcsAddSystem(ECS *ecs, Script s, EcsPhase phase, Signature mask);
 
 /**
- * Runs all systems in a specific execution layer.
+ * Runs all systems in a specific execution phase.
  *
- * Iterates through all systems in the layer and executes them on entities
+ * Iterates through all systems in the phase and executes them on entities
  * that match their component signatures and current active/visible state.
  *
  * Update systems (Start, Update, LateUpdate, FixedUpdate) only run on
@@ -571,6 +585,101 @@ void EcsAddSystem(ECS *ecs, Script s, EcsLayer ly, Signature mask);
  *
  * Example: EcsRunSystems(ecs, EcsOnUpdate); // Run all update systems
  */
-void EcsRunSystems(ECS *ecs, EcsLayer ly);
+void EcsRunSystems(ECS *ecs, EcsPhase phase);
+
+// ######## //
+//  LAYERS  //
+// ######## //
+
+/**
+ * @brief Adds a new layer to the ECS registry.
+ *
+ * Creates a new layer with collision enabled for all other layers by default.
+ * Layers are managed by the registry and used for both collision filtering
+ * and render ordering. Each layer can interact with up to 64 other layers
+ * through bitmask filtering.
+ *
+ * @param ecs Registry to add the layer to
+ * @param name Layer name
+ *
+ * @see EntitySetLayer() to assign entities to this layer
+ * @see LayerDisable() to disable specific collisions
+ */
+void AddLayer(ECS *ecs, char *name);
+
+/**
+ * @brief Assigns an entity to a specific layer.
+ *
+ * Sets the entity's layer which determines collision filtering and
+ * render ordering.
+ *
+ * @param ecs Registry containing the entity and layers
+ * @param e Entity to assign to layer
+ * @param layer Name of the layer to assign entity to
+ *
+ * @see AddLayer() to create layers
+ * @see LayerEnable() to enable collisions
+ * @see LayerIncludes() for collision checking
+ */
+void EntitySetLayer(ECS *ecs, Entity e, char *layer);
+
+/**
+ * @brief Enables collision between two layers.
+ *
+ * Sets up bidirectional collision filtering between the specified layers.
+ *
+ * @param ecs Registry containing the layers
+ * @param layer1 Name of the first layer
+ * @param layer2 Name of the second layer
+ *
+ * @see LayerDisable() to disable collisions
+ * @see LayerIncludes() to check if collisions are enabled
+ */
+void LayerEnable(ECS *ecs, char *layer1, char *layer2);
+
+/**
+ * @brief Disables collision between two layers.
+ *
+ * Removes bidirectional collision filtering between the specified layers.
+ *
+ * @param ecs Registry containing the layers
+ * @param layer1 Name of the first layer
+ * @param layer2 Name of the second layer
+ *
+ * @see LayerEnable() to enable collisions
+ * @see LayerDisableAll() to disable all collisions for a layer
+ */
+void LayerDisable(ECS *ecs, char *layer1, char *layer2);
+
+/**
+ * @brief Disables all collisions for a specific layer.
+ *
+ * Removes collision filtering between the specified layer and all other
+ * layers.
+ *
+ * @param ecs Registry containing the layer
+ * @param layer Name of the layer to disable all collisions for
+ *
+ * @see LayerEnable() to re-enable specific collisions
+ * @see LayerDisable() to disable specific layer pairs
+ */
+void LayerDisableAll(ECS *ecs, char *layer);
+
+/**
+ * @brief Checks if two layers can collide with each other.
+ *
+ * Determine if entities on the specified layers can collide. This is the fast
+ * path for collision checking using pre-resolved layer IDs, typically used in
+ * collision systems.
+ *
+ * @param ecs Registry containing the layers
+ * @param layer1 ID of the first layer (0-255)
+ * @param layer2 ID of the second layer (0-255)
+ * @return true if the layers can collide, false otherwise
+ *
+ * @see LayerIndex() to convert layer names to IDs
+ * @see EntitySetLayer() to assign entities to layers
+ */
+bool LayerIncludes(ECS *ecs, uint8_t layer1, uint8_t layer2);
 
 #endif

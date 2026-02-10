@@ -1,7 +1,5 @@
 #include <gearecs/world.h>
 
-#include <service/layers.h>
-
 #ifdef PLATFORM_WEB
 #include <emscripten/emscripten.h>
 #endif
@@ -9,8 +7,8 @@
 static float fixed_time; ///< Accumulator for fixed timestep integration
 static Color background; ///< Window background color
 
-ECS *EcsWorld(uint16_t max_entities, Camera2D camera) {
-  ECS *ecs = EcsRegistry(max_entities);
+ECS *EcsWorld(void) {
+  ECS *ecs = EcsRegistry();
 
   Component(ecs, Transform2);
   Component(ecs, Behaviour);
@@ -22,6 +20,11 @@ ECS *EcsWorld(uint16_t max_entities, Camera2D camera) {
   Component(ecs, CollisionListener);
   Component(ecs, RigidBody);
 
+  Camera2D camera = {
+      .offset = {GetScreenWidth() / 2.f, GetScreenHeight() / 2.f},
+      .target = {0, 0},
+      .rotation = 0,
+      .zoom = 1.f};
   Entity camEntity = EcsEntity(ecs, "MainCamera");
   AddComponent(ecs, camEntity, Camera2D, camera);
 
@@ -41,7 +44,7 @@ ECS *EcsWorld(uint16_t max_entities, Camera2D camera) {
 
   System(ecs, SpriteSystem, EcsOnRender, Transform2, Sprite);
 
-  StartLayerService(ecs);
+  AddLayer(ecs, "default");
 
   background = (Color){23, 28, 29, 255};
   return ecs;
@@ -62,7 +65,7 @@ void GameGenericLoop(void *world) {
   BeginDrawing();
   ClearBackground(background);
 
-  Camera2D *cam = GetComponent(ecs, 0, Camera2D);
+  Camera2D *cam = WorldMainCamera(ecs);
   BeginMode2D(*cam);
   EcsRunSystems(ecs, EcsOnRender);
   EndMode2D();
@@ -82,5 +85,6 @@ void EcsLoop(ECS *world) {
     GameGenericLoop(world);
   }
 #endif
-  StopLayerService(world);
 }
+
+Camera2D *WorldMainCamera(ECS *ecs) { return GetComponent(ecs, 0, Camera2D); }

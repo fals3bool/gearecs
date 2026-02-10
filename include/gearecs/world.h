@@ -32,36 +32,21 @@
  * - Built-in systems (physics, rendering, collision, etc.)
  * - Camera integration for 2D rendering
  *
- * @param max_entities Maximum number of entities the world can support.
- * @param camera Raylib Camera2D structure for 2D rendering viewport.
  * @return Pointer to created ECS world, or NULL on failure.
- *
- * @note Entity {id:0} is the camera. Use GetComponent(world, 0, Camera2D) to
- * retrieve the camera component.
- *
- * Example:
- * ```c
- * Camera2D camera = {0};
- * camera.target = (Vector2){0, 0};
- * camera.offset = (Vector2){GetScreenWidth() / 2, GetScreenHeight() / 2};
- * camera.rotation = 0.0f;
- * camera.zoom = 1.0f;
- *
- * ECS *world = EcsWorld(4096, camera);
- * ```
  *
  * @see EcsLoop() for running the main game loop
  * @see EcsFree() for freeing the world when done
+ * @see WorldMainCamera() to retrieve the main camera
  * @see EcsRegistry() for creating a basic empty registry
  */
-ECS *EcsWorld(uint16_t max_entities, Camera2D camera);
+ECS *EcsWorld(void);
 
 /**
  * Runs the main ECS game loop with proper phase ordering.
  *
  * This function implements the complete game loop that processes
  * all registered systems in their correct execution phases. It handles
- * the automatic calling of systems during their proper execution layer.
+ * the automatic calling of systems during their proper execution phase.
  *
  * The loop continues until the window is closed.
  *
@@ -75,5 +60,13 @@ ECS *EcsWorld(uint16_t max_entities, Camera2D camera);
  * @see EcsLayer enum for available execution phases
  */
 void EcsLoop(ECS *world);
+
+/**
+ * @brief Retrieves the world main camera if exists.
+ *
+ * @param ecs The ECS world registry.
+ * @return Camera2D component pointer or NULL if not found.
+ */
+Camera2D *WorldMainCamera(ECS *ecs);
 
 #endif

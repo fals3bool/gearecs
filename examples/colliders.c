@@ -1,10 +1,6 @@
 #include <gearecs/world.h>
-#include <service/layers.h>
 
 #include <stdio.h>
-
-#define SCREEN_W 800
-#define SCREEN_H 450
 
 void ScriptMove(ECS *ecs, Entity self) {
   Transform2 *t = GetComponent(ecs, self, Transform2);
@@ -32,7 +28,7 @@ void ScriptMove(ECS *ecs, Entity self) {
   if (IsKeyPressed(KEY_SPACE)) {
     rb->gravity = false;
     rb->type++;
-    if (rb->type > BODY_KINEMATIC)
+    if (rb->type > BodyKinematic)
       rb->type = 0;
   }
 }
@@ -59,7 +55,7 @@ void ScriptGui(ECS *ecs, Entity self) {
   DrawText("Switch RigidBody: [SPACE]", 10, 50, 16, WHITE);
   char fpstxt[10];
   snprintf(fpstxt, 10, "FPS: %d", GetFPS());
-  DrawText(fpstxt, SCREEN_W - 90, 10, 16, WHITE);
+  DrawText(fpstxt, 700, 10, 16, WHITE);
 }
 
 void ScriptShowData(ECS *ecs, Entity self) {
@@ -76,7 +72,7 @@ void ScriptShowData(ECS *ecs, Entity self) {
            t->position.y + 20, fontsize, WHITE);
 
   char layertxt[20];
-  snprintf(layertxt, 11, "Layer: %d", c->layer);
+  snprintf(layertxt, 11, "Layer: %d", EcsEntityData(ecs, self)->layer);
   DrawText(layertxt,
            t->position.x -
                MeasureTextEx(GetFontDefault(), layertxt, fontsize, 1).x / 2,
@@ -86,8 +82,8 @@ void ScriptShowData(ECS *ecs, Entity self) {
     return;
   char rbtxt[20];
   snprintf(rbtxt, 16, "Body: %s",
-           rb ? rb->type == BODY_DYNAMIC  ? "DYNAMIC"
-                : rb->type == BODY_STATIC ? "STATIC"
+           rb ? rb->type == BodyDynamic  ? "DYNAMIC"
+                : rb->type == BodyStatic ? "STATIC"
                                           : "KINEMATIC"
               : "NONE");
   DrawText(rbtxt,
@@ -104,8 +100,8 @@ void OnCollisionHandler(ECS *ecs, CollisionEvent *event) {
 void LoadScene(ECS *ecs) {
 
   AddLayer(ecs, "player");
-  AddLayer(ecs, "alone");
-  CleanupCollisionLayer(ecs, "alone");
+  AddLayer(ecs, "disable");
+  LayerDisableAll(ecs, "disable");
 
   // COLLIDER: [SOLID]
   // BODY: [NONE]
@@ -145,18 +141,18 @@ void LoadScene(ECS *ecs) {
   // BODY: [STATIC]
   // ANOTHER LAYER
   Entity E = EcsEntity(ecs, "E");
+  EntitySetLayer(ecs, E, "disable");
   AddComponent(ecs, E, Transform2, TransformPos(250, 100));
   Collider solid = ColliderSolid(5, 20);
-  ColliderSetLayer(ecs, &solid, "alone");
   AddComponent(ecs, E, Collider, solid);
   AddComponent(ecs, E, RigidBody, RigidBodyStatic);
   AddScript(ecs, E, ScriptShowData, EcsOnRender);
 
   // PLAYER
   Entity P = EcsEntity(ecs, "Player");
+  EntitySetLayer(ecs, P, "player");
   AddComponent(ecs, P, Transform2, TransformOrigin);
   Collider colP = ColliderSolid(3, 22);
-  ColliderSetLayer(ecs, &colP, "player");
   AddComponent(ecs, P, Collider, colP);
   AddComponent(ecs, P, CollisionListener, {OnCollisionHandler});
   AddComponent(ecs, P, RigidBody, RigidBodyKinematic(50, 1.5f));
@@ -165,22 +161,18 @@ void LoadScene(ECS *ecs) {
   AddScript(ecs, P, ScriptShowData, EcsOnRender);
   AddScript(ecs, P, ScriptGui, EcsOnGui);
 
-  DebugCollisionLayers(ecs);
-
   System(ecs, DebugColliderSystem, EcsOnRender, Transform2, Collider);
 }
 
 int main(void) {
+  InitWindow(800, 450, "Colliders & RigidBodies");
 
-  InitWindow(SCREEN_W, SCREEN_H, "Colliders & RigidBodies");
-  Camera2D cam = {{SCREEN_W / 2.f, SCREEN_H / 2.f}, {0, 0}, 0, 1.f};
-
-  ECS *ecs = EcsWorld(32, cam);
+  ECS *ecs = EcsWorld();
   LoadScene(ecs);
+  EcsLogStatus(ecs);
   EcsLoop(ecs);
 
   EcsFree(ecs);
   CloseWindow();
-
   return 0;
 }

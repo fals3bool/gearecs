@@ -24,7 +24,7 @@ void Print(ECS *ecs, Entity e) {
 int main(void) {
 
   // ECS REGISTRY
-  ECS *world = EcsRegistry(32);
+  ECS *world = EcsRegistry();
 
   // ENTITIES
   Entity e0 = EcsEntity(world, "e0");

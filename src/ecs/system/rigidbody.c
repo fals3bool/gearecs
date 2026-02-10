@@ -17,7 +17,7 @@ void PhysicsSystem(ECS *ecs, Entity e) {
 
 void GravitySystem(ECS *ecs, Entity e) {
   RigidBody *rb = GetComponent(ecs, e, RigidBody);
-  if (!(rb->type == BODY_DYNAMIC && rb->gravity))
+  if (!(rb->type == BodyDynamic && rb->gravity))
     return;
 
   Vector2 w = {0, 9.8f * rb->mass};

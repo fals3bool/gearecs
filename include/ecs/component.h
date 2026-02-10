@@ -107,7 +107,8 @@ typedef struct {
  *
  * Supports both solid colliders (block movement) and trigger colliders
  * (detect overlap without blocking). Uses polygon-based collision with
- * configurable vertices and collision layers for selective interaction.
+ * configurable vertices. Collision filtering is handled through entity layers
+ * managed by the registry.
  */
 typedef struct {
   Vector2 *vx;      ///< Array of polygon vertices (local space)
@@ -115,8 +116,6 @@ typedef struct {
   uint8_t vertices; ///< Number of vertices in polygon
   bool overlap;     ///< Collision overlap flag (internal)
   bool solid;       ///< true for solid, false for trigger
-
-  uint8_t layer; ///< Collision layer
 } Collider;
 
 /**
@@ -261,9 +260,9 @@ typedef struct {
  * - Kinematic: Moved manually, affects dynamics but isn't affected
  */
 typedef enum {
-  BODY_STATIC = 0, ///< Immovable objects with infinite mass
-  BODY_DYNAMIC,    ///< Full physics simulation
-  BODY_KINEMATIC   ///< Manually controlled objects
+  BodyStatic = 0, ///< Immovable objects with infinite mass
+  BodyDynamic,    ///< Full physics simulation
+  BodyKinematic   ///< Manually controlled objects
 } BodyType;
 
 /**
@@ -276,7 +275,7 @@ typedef enum {
 typedef struct {
   float mass;    ///< Object mass (g), 0 or INFINITY for static objects
   float invmass; ///< Inverse mass (1/mass), 0 for static objects
-  float damping; ///< Velocity damping factor (0-1, 1 = no damping)
+  float damping; ///< Velocity damping factor (0 = no damping)
   BodyType type; ///< Physics behavior type
   bool gravity;  ///< Whether gravity affects this body
   Vector2 speed; ///< Current velocity (units/second)
@@ -299,7 +298,7 @@ typedef struct {
    (mass > 0) ? 1.f / mass : 0,                                                \
    damping,                                                                    \
    type,                                                                       \
-   (type == BODY_DYNAMIC) ? true : false,                                      \
+   (type == BodyDynamic) ? true : false,                                       \
    {0, 0},                                                                     \
    {0, 0}}
 
@@ -313,7 +312,7 @@ typedef struct {
  *
  * Example: AddComponent(world, e, RigidBody, RigidBodyStatic);
  */
-#define RigidBodyStatic RigidBodyCreate(0, 0, BODY_STATIC)
+#define RigidBodyStatic RigidBodyCreate(0, 0, BodyStatic)
 
 /**
  * Creates a dynamic rigid body.
@@ -329,7 +328,7 @@ typedef struct {
  * Example: AddComponent(world, e, RigidBody, RigidBodyDynamic(80.0f, 0.98f));
  */
 #define RigidBodyDynamic(mass, damping)                                        \
-  RigidBodyCreate(mass, damping, BODY_DYNAMIC)
+  RigidBodyCreate(mass, damping, BodyDynamic)
 
 /**
  * Creates a kinematic rigid body.
@@ -345,7 +344,7 @@ typedef struct {
  * Example: AddComponent(world, e, RigidBody, RigidBodyKinematic(0, 0.95f));
  */
 #define RigidBodyKinematic(mass, damping)                                      \
-  RigidBodyCreate(mass, damping, BODY_KINEMATIC)
+  RigidBodyCreate(mass, damping, BodyKinematic)
 
 /**
  * Applies a continuous force to a rigid body.
@@ -416,7 +415,7 @@ typedef struct {
 typedef struct {
   Script OnEnable;                ///< Script called when entity is enabled
   Script OnDisable;               ///< Script called when entity is disabled
-  Script scripts[EcsTotalLayers]; ///< Scripts for each ecs layer
+  Script scripts[EcsTotalPhases]; ///< Scripts for each ecs layer
 } Behaviour;
 
 /**
@@ -432,7 +431,7 @@ typedef struct {
  *
  * Example: AddScript(world, player, PlayerUpdate, EcsOnUpdate);
  */
-void AddScript(ECS *ecs, Entity e, Script s, EcsLayer ly);
+void AddScript(ECS *ecs, Entity e, Script s, EcsPhase phase);
 
 // ########### //
 //  HIERARCHY  //

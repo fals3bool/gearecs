@@ -1,40 +1,41 @@
 #include <gearecs.h>
 
-#define SCREEN_WIDTH 800
-#define SCREEN_HEIGHT 450
-
-static float speed = 500.f;
-static float jump = 10000.f;
-static bool jumpColldown = true;
+typedef struct {
+  float speed;
+  float jump;
+  bool cooldown;
+} PlayerData;
 
 void ScriptMove(ECS *ecs, Entity self) {
   RigidBody *rb = GetComponent(ecs, self, RigidBody);
+  PlayerData *pd = GetComponent(ecs, self, PlayerData);
 
   if (IsKeyDown(KEY_A))
-    ApplyImpulse(rb, (Vector2){-speed, 0});
+    ApplyImpulse(rb, (Vector2){-pd->speed, 0});
   if (IsKeyDown(KEY_D))
-    ApplyImpulse(rb, (Vector2){speed, 0});
+    ApplyImpulse(rb, (Vector2){pd->speed, 0});
 
-  if (IsKeyDown(KEY_SPACE) && !jumpColldown) {
-    ApplyImpulse(rb, (Vector2){0, -jump});
-    jumpColldown = true;
+  if (IsKeyDown(KEY_SPACE) && !pd->cooldown) {
+    ApplyImpulse(rb, (Vector2){0, -pd->jump});
+    pd->cooldown = true;
   }
 }
 
 void OnGround(ECS *ecs, CollisionEvent *event) {
   RigidBody *rb = GetComponent(ecs, event->self, RigidBody);
+  PlayerData *pd = GetComponent(ecs, event->self, PlayerData);
   rb->acc = (Vector2){0, 0};
-  jumpColldown = false;
+  pd->cooldown = false;
 }
 
 int main(void) {
-  InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Getting Started with GearECS!");
-  Camera2D camera = {{SCREEN_WIDTH / 2.f, SCREEN_HEIGHT / 2.f}, {0, 0}, 0, 1};
+  InitWindow(800, 450, "Getting Started with GearECS!");
 
-  ECS *world = EcsWorld(32, camera);
-  System(world, DebugColliderSystem, EcsOnRender, Collider, Transform2);
+  ECS *world = EcsWorld();
+  Component(world, PlayerData);
 
   Entity box = EcsEntity(world, "box");
+  AddComponent(world, box, PlayerData, {600, 10000, true});
   AddComponent(world, box, Transform2, TransformOrigin);
   AddComponent(world, box, Collider,
                ColliderRect((Rectangle){0, 0, 10, 10}, true));
@@ -45,13 +46,13 @@ int main(void) {
   Entity floor = EcsEntity(world, "floor");
   AddComponent(world, floor, Transform2, TransformPos(0, 100));
   AddComponent(world, floor, Collider,
-               ColliderRect((Rectangle){-SCREEN_WIDTH / 2.f + 20, 0,
-                                        SCREEN_WIDTH - 40, 10},
-                            true));
+               ColliderRect((Rectangle){-350, 0, 700, 10}, true));
   AddComponent(world, floor, RigidBody, RigidBodyStatic);
 
+  System(world, DebugColliderSystem, EcsOnRender, Collider, Transform2);
   EcsLoop(world);
 
   EcsFree(world);
+  CloseWindow();
   return 0;
 }

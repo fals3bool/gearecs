@@ -23,10 +23,10 @@ typedef uint16_t EcsID;
  * An entity represents a general purpose object in the game world.
  *
  * Entities are defined by their components - an entity with no components
- * still exists but has no behavior or properties. Entities are lightweight
- * and can be created/destroyed frequently.
+ * still exists but has no behavior or properties. Entities are managed
+ * in dynamic arrays that grow as needed, and IDs are recycled after 
+ * destruction for efficiency.
  *
- * @note Entity IDs are recycled after destruction for efficiency
  * @see Signature for component filtering
  * @see EcsEntity() to create entities
  * @see EcsEntityFree() to destroy an entity
@@ -52,10 +52,9 @@ typedef uint64_t Signature;
 /**
  * Entity metadata and state management component.
  *
- * Provides entity tagging, activity/visibility control, and component
- * signature information for entity management and system filtering.
- * 
- * @note This component is automatically added to entities created with EcsEntity()
+ * Provides entity tagging, activity/visibility control, rendering layer, and
+ * component signature information for entity management and system filtering.
+ *
  * @see EntitySetActive() to control activity state
  * @see EntitySetVisible() to control visibility state
  * @see EntityFindByTag() to find entities by tag
@@ -64,7 +63,8 @@ typedef struct {
   Signature signature; ///< Component signature bitmask for system filtering
   bool active;         ///< Whether entity participates in Update systems
   bool visible;        ///< Whether entity participates in Render systems
-  char *tag;          ///< Entity identifier string for lookup and debugging
+  char *tag;           ///< Entity identifier string for lookup and debugging
+  uint8_t layer;       ///< Layer used for rendering and collisions
 } EntityData;
 
 #endif

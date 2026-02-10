@@ -996,7 +996,12 @@ INPUT                  = include \
                          docs/Registry.md \
                          docs/Components.md \
                          docs/Systems.md \
-                         docs/World.md
+                         docs/World.md \
+                         docs/Hierarchy.md \
+                         docs/Layers.md \
+                         docs/Colliders.md \
+                         docs/RigidBody.md \
+                         docs/Scripting.md 
 
 # This tag can be used to specify the character encoding of the source files
 # that Doxygen parses. Internally Doxygen uses the UTF-8 encoding. Doxygen uses
