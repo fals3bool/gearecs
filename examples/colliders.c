@@ -169,7 +169,7 @@ int main(void) {
 
   ECS *ecs = EcsWorld();
   LoadScene(ecs);
-  DebugECS(ecs);
+  EcsLogStatus(ecs);
   EcsLoop(ecs);
 
   EcsFree(ecs);

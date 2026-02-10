@@ -66,7 +66,7 @@ struct Registry {
 //  UTIL  //
 // ###### //
 
-void DebugECS(ECS *ecs) {
+void EcsLogStatus(ECS *ecs) {
   printf("ECS Registry: {\n  Entity: {\n");
   printf("    Alive: %u (alloc:%u)\n", ecs->entity_count, ecs->entity_alloc);
   printf("    Free: %u (alloc:%u)\n", ecs->free_count, ecs->free_alloc);
@@ -214,7 +214,7 @@ void EcsFree(ECS *ecs) {
   EcsFreeComponents(ecs);
   EcsFreeEntities(ecs);
   free(ecs);
-  printf(" > Registry freed successfully!\n");
+  printf("GEARECS: Registry freed successfully!\n");
 }
 
 // ######## //

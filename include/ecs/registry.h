@@ -40,7 +40,7 @@
  */
 typedef struct Registry ECS;
 
-void DebugECS(ECS *ecs);
+void EcsLogStatus(ECS *ecs);
 
 /**
  * Components define entities by storing data that represents specific aspects.
