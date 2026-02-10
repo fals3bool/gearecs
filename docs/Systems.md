@@ -66,14 +66,54 @@ while (!WindowShouldClose()) {
 
 gearecs provides several built-in systems that handle common game functionality:
 
-- **HierarchyTransformSystem**: Updates child transforms based on parent transforms
-- **TransformColliderSystem**: Synchronizes collider positions with transform positions
-- **CollisionSystem**: Detects and resolves collisions between entities
+### Behaviour Systems
+- `BehaviourStartSystem`: Runs EcsOnStart scripts from Behaviour components
+- `BehaviourUpdateSystem`: Runs EcsOnUpdate scripts from Behaviour components
+- `BehaviourLateSystem`: Runs EcsOnLateUpdate scripts from Behaviour components
+- `BehaviourFixedSystem`: Runs EcsOnFixedUpdate scripts from Behaviour components
+- `BehaviourRenderSystem`: Runs EcsOnRender scripts from Behaviour components
+- `BehaviourGuiSystem`: Runs EcsOnGui scripts from Behaviour components
 
-- **GravitySystem**: Applies gravitational forces to rigid bodies
-- **PhysicsSystem**: Handles velocity, forces, and integration for rigid bodies
+### Transform Systems
+- `HierarchyTransformSystem`: Updates child transforms based on parent transforms
+- `TransformColliderSystem`: Synchronizes collider positions with transform positions
 
-- **SpriteSystem**: Renders sprite components
-- **DebugColliderSystem**: Draws collider bounds and collision events (for debugging)
+### Physics Systems
+- `CollisionSystem`: Detects and resolves collisions between entities
+- `GravitySystem`: Applies gravitational forces to rigid bodies
+- `PhysicsSystem`: Handles velocity, forces, and integration for rigid bodies
+
+### Rendering Systems
+- `SpriteSystem`: Renders sprite components
+
+### Debug Systems
+- `DebugColliderSystem`: Draws collider bounds and collision events (for debugging)
+
+## Registering Built-in Systems
+
+```C
+// Behaviour systems
+System(ecs, BehaviourStartSystem, EcsOnStart, Behaviour);
+System(ecs, BehaviourUpdateSystem, EcsOnUpdate, Behaviour);
+System(ecs, BehaviourLateSystem, EcsOnLateUpdate, Behaviour);
+System(ecs, BehaviourFixedSystem, EcsOnFixedUpdate, Behaviour);
+System(ecs, BehaviourRenderSystem, EcsOnRender, Behaviour);
+System(ecs, BehaviourGuiSystem, EcsOnGui, Behaviour);
+
+// Transform systems
+System(ecs, HierarchyTransformSystem, EcsOnUpdate, Transform2, Parent);
+System(ecs, TransformColliderSystem, EcsOnUpdate, Transform2, Collider);
+
+// Physics systems
+System(ecs, CollisionSystem, EcsOnUpdate, Transform2, Collider);
+System(ecs, GravitySystem, EcsOnFixedUpdate, RigidBody);
+System(ecs, PhysicsSystem, EcsOnFixedUpdate, RigidBody, Transform2);
+
+// Rendering systems
+System(ecs, SpriteSystem, EcsOnRender, Sprite, Transform2);
+
+// Debug systems
+System(ecs, DebugColliderSystem, EcsOnRender, Collider, Transform2);
+```
 
 

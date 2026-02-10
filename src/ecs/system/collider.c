@@ -108,8 +108,8 @@ uint8_t CollisionSat(Transform2 *ta, Collider *ca, Transform2 *tb, Collider *cb,
 
 void ResolveCollision(Collision *input, Transform2 *ta, RigidBody *ra,
                       Transform2 *tb, RigidBody *rb) {
-  float invmassA = (ra && ra->type == BODY_DYNAMIC) ? ra->invmass : 0;
-  float invmassB = (rb && rb->type == BODY_DYNAMIC) ? rb->invmass : 0;
+  float invmassA = (ra && ra->type == BodyDynamic) ? ra->invmass : 0;
+  float invmassB = (rb && rb->type == BodyDynamic) ? rb->invmass : 0;
   if (invmassA + invmassB == 0)
     return;
 
@@ -127,9 +127,9 @@ void ResolveCollision(Collision *input, Transform2 *ta, RigidBody *ra,
   float e = 0;
   float impulseMagnitute = -(1 + e) * speedAlongNormal / (invmassA + invmassB);
   Vector2 impulse = Vector2Scale(input->normal, impulseMagnitute);
-  if (ra && ra->type == BODY_DYNAMIC)
+  if (ra && ra->type == BodyDynamic)
     ra->speed = Vector2Subtract(ra->speed, Vector2Scale(impulse, invmassA));
-  if (rb && rb->type == BODY_DYNAMIC)
+  if (rb && rb->type == BodyDynamic)
     rb->speed = Vector2Add(rb->speed, Vector2Scale(impulse, invmassB));
 }
 

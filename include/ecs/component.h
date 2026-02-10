@@ -260,9 +260,9 @@ typedef struct {
  * - Kinematic: Moved manually, affects dynamics but isn't affected
  */
 typedef enum {
-  BODY_STATIC = 0, ///< Immovable objects with infinite mass
-  BODY_DYNAMIC,    ///< Full physics simulation
-  BODY_KINEMATIC   ///< Manually controlled objects
+  BodyStatic = 0, ///< Immovable objects with infinite mass
+  BodyDynamic,    ///< Full physics simulation
+  BodyKinematic   ///< Manually controlled objects
 } BodyType;
 
 /**
@@ -275,7 +275,7 @@ typedef enum {
 typedef struct {
   float mass;    ///< Object mass (g), 0 or INFINITY for static objects
   float invmass; ///< Inverse mass (1/mass), 0 for static objects
-  float damping; ///< Velocity damping factor (0-1, 1 = no damping)
+  float damping; ///< Velocity damping factor (0 = no damping)
   BodyType type; ///< Physics behavior type
   bool gravity;  ///< Whether gravity affects this body
   Vector2 speed; ///< Current velocity (units/second)
@@ -298,7 +298,7 @@ typedef struct {
    (mass > 0) ? 1.f / mass : 0,                                                \
    damping,                                                                    \
    type,                                                                       \
-   (type == BODY_DYNAMIC) ? true : false,                                      \
+   (type == BodyDynamic) ? true : false,                                       \
    {0, 0},                                                                     \
    {0, 0}}
 
@@ -312,7 +312,7 @@ typedef struct {
  *
  * Example: AddComponent(world, e, RigidBody, RigidBodyStatic);
  */
-#define RigidBodyStatic RigidBodyCreate(0, 0, BODY_STATIC)
+#define RigidBodyStatic RigidBodyCreate(0, 0, BodyStatic)
 
 /**
  * Creates a dynamic rigid body.
@@ -328,7 +328,7 @@ typedef struct {
  * Example: AddComponent(world, e, RigidBody, RigidBodyDynamic(80.0f, 0.98f));
  */
 #define RigidBodyDynamic(mass, damping)                                        \
-  RigidBodyCreate(mass, damping, BODY_DYNAMIC)
+  RigidBodyCreate(mass, damping, BodyDynamic)
 
 /**
  * Creates a kinematic rigid body.
@@ -344,7 +344,7 @@ typedef struct {
  * Example: AddComponent(world, e, RigidBody, RigidBodyKinematic(0, 0.95f));
  */
 #define RigidBodyKinematic(mass, damping)                                      \
-  RigidBodyCreate(mass, damping, BODY_KINEMATIC)
+  RigidBodyCreate(mass, damping, BodyKinematic)
 
 /**
  * Applies a continuous force to a rigid body.

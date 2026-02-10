@@ -28,7 +28,7 @@ void ScriptMove(ECS *ecs, Entity self) {
   if (IsKeyPressed(KEY_SPACE)) {
     rb->gravity = false;
     rb->type++;
-    if (rb->type > BODY_KINEMATIC)
+    if (rb->type > BodyKinematic)
       rb->type = 0;
   }
 }
@@ -82,8 +82,8 @@ void ScriptShowData(ECS *ecs, Entity self) {
     return;
   char rbtxt[20];
   snprintf(rbtxt, 16, "Body: %s",
-           rb ? rb->type == BODY_DYNAMIC  ? "DYNAMIC"
-                : rb->type == BODY_STATIC ? "STATIC"
+           rb ? rb->type == BodyDynamic  ? "DYNAMIC"
+                : rb->type == BodyStatic ? "STATIC"
                                           : "KINEMATIC"
               : "NONE");
   DrawText(rbtxt,

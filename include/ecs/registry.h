@@ -80,7 +80,7 @@ typedef void (*Script)(ECS *, Entity);
  * and can target entities based on their active/visible state.
  *
  * @see System() macro to create systems
- * @see EcsLayer for system execution phases
+ * @see EcsPhase for system execution phases
  */
 typedef struct {
   Script run;     ///< Function to execute for matching entities
