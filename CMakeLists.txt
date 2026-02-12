@@ -12,25 +12,36 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Default build type
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
+  set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
 endif()
 
 # WEB
 if(EMSCRIPTEN)
-    set(PLATFORM Web)
-    # set(CMAKE_EXECUTABLE_SUFFIX ".html")
+  set(PLATFORM Web CACHE STRING "" FORCE)
+  set(OPENGL_VERSION "ES 3.0" CACHE STRING "" FORCE)
+  # set(CMAKE_EXECUTABLE_SUFFIX ".html")
+  add_link_options(
+    -sUSE_GLFW=3
+    -sMIN_WEBGL_VERSION=2
+    -sMAX_WEBGL_VERSION=2
+    -sFULL_ES3=1
+    -sALLOW_MEMORY_GROWTH=1
+  )
+else()
+  set(PLATFORM Desktop CACHE STRING "" FORCE)
+  set(OPENGL_VERSION "3.3" CACHE STRING "" FORCE)
 endif()
 
 if(MSVC)
-    add_compile_options(/W4)
+  add_compile_options(/W4)
 else()
-    add_compile_options(-Wall -Wextra -Wpedantic)
+  add_compile_options(-Wall -Wextra -Wpedantic)
 
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        add_compile_options(-g -O0)
-    elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
-        add_compile_options(-O3)
-    endif()
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_options(-g -O0)
+  elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+    add_compile_options(-O3)
+  endif()
 endif()
 
 # Adding Raylib
@@ -40,8 +51,6 @@ set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE) # don't build the supplied examples
 set(BUILD_GAMES    OFF CACHE BOOL "" FORCE) # don't build the supplied example games
 set(SUPPORT_BUSY_WAIT_LOOP OFF CACHE BOOL "" FORCE)
 set(SUPPORT_FILEFORMAT_GIF OFF CACHE BOOL "" FORCE)
-set(PLATFORM Desktop CACHE STRING "" FORCE) # cross-compile
-set(OPENGL_VERSION "3.3" CACHE STRING "" FORCE)
 set(USE_EXTERNAL_GLFW OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(
   raylib
