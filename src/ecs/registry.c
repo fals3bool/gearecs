@@ -1,6 +1,8 @@
 #include <ecs/registry.h>
 
-// vi :200
+#include <mem/array.h>
+
+// vi :170
 
 #include <assert.h>
 #include <ctype.h>
@@ -86,39 +88,6 @@ void EcsLogStatus(ECS *ecs) {
            ecs->layers[i].name, ecs->render[i].count, ecs->render[i].alloc,
            ecs->layers[i].mask);
   printf("    ],\n  },\n}\n");
-}
-
-static void *EcsReallocArray(void *ptr, EcsID initial, EcsID count,
-                             size_t size) {
-  if (ptr == NULL || initial <= 1)
-    return malloc(size * count);
-  return realloc(ptr, size * count);
-}
-
-static EcsID EcsEnsureCapacity(void **array, EcsID total, EcsID count,
-                               size_t size) {
-  if (count >= total) {
-    EcsID new_total = total ? total * 2 : 4;
-    while (new_total < count)
-      new_total *= 2;
-    void *new_array = EcsReallocArray(*array, count, new_total, size);
-    if (!new_array)
-      return InvalidID;
-
-    *array = new_array;
-    return new_total;
-  }
-  return total;
-}
-
-static EcsID EcsPushToArray(void **array, EcsID total, EcsID count,
-                            void *element, size_t size) {
-  EcsID new_total = EcsEnsureCapacity(array, total, count + 1, size);
-  if (new_total == InvalidID)
-    return InvalidID;
-  void *dest = (uint8_t *)(*array) + count * size;
-  memcpy(dest, element, size);
-  return new_total;
 }
 
 // ############# //
@@ -235,8 +204,10 @@ Entity EcsEntity(ECS *ecs, char *tag) {
   }
   assert(e < MaxEntities && "Exceeded maximum number of entities");
   EntityData ed = {0, true, true, tag, 0};
-  Entity alloc = EcsPushToArray((void **)&ecs->entities, ecs->entity_alloc, e,
-                                &ed, sizeof(EntityData));
+  Entity alloc = MemPushBack((void **)&ecs->entities, ecs->entity_alloc, e, &ed,
+                             sizeof(EntityData));
+  // if (alloc == 0) // this should never happend
+  //   return InvalidID;
   ecs->entity_alloc = alloc;
   ecs->entity_count++;
   AddEntityToLayer(ecs, e, 0);
@@ -258,7 +229,7 @@ void EcsEntityFree(ECS *ecs, Entity e) {
   ecs->entities[e] = (EntityData){0};
 
   // if (ecs->free_count < MaxEntities) {
-  Entity alloc = EcsPushToArray((void **)&ecs->free_entities, ecs->free_alloc,
+  Entity alloc = MemPushBack((void **)&ecs->free_entities, ecs->free_alloc,
                                 ecs->free_count, &e, sizeof(Entity));
   ecs->free_alloc = alloc;
   ecs->free_count++;
@@ -344,9 +315,9 @@ Component EcsComponent(ECS *ecs, char *name, size_t size,
   ComponentData component = {NULL, size, dtor, 0};
   ComponentID compid = {id, name};
 
-  EcsPushToArray((void **)&ecs->components, alloc, count, &component,
+  MemPushBack((void **)&ecs->components, alloc, count, &component,
                  sizeof(ComponentData));
-  alloc = EcsPushToArray((void **)&ecs->search, alloc, count, &compid,
+  alloc = MemPushBack((void **)&ecs->search, alloc, count, &compid,
                          sizeof(ComponentID));
 
   ecs->comp_alloc = alloc;
@@ -363,7 +334,7 @@ void EcsAddComponent(ECS *ecs, Entity e, Component id, void *data) {
   assert(id < ecs->comp_count && "Component does not exist");
 
   size_t size = ecs->components[id].size;
-  Component alloc = EcsPushToArray((void **)&ecs->components[id].list,
+  Component alloc = MemPushBack((void **)&ecs->components[id].list,
                                    ecs->components[id].alloc, e, data, size);
   ecs->components[id].alloc = alloc;
   ecs->entities[e].signature |= (1ULL << id);
@@ -472,7 +443,7 @@ void EcsAddSystem(ECS *ecs, Script s, EcsPhase phase, Signature mask) {
     return;
 
   System sys = {s, mask};
-  EcsID alloc = EcsPushToArray((void **)&ecs->systems[phase].list,
+  EcsID alloc = MemPushBack((void **)&ecs->systems[phase].list,
                                ecs->systems[phase].alloc,
                                ecs->systems[phase].size, &sys, sizeof(System));
   if (alloc == InvalidID)
@@ -528,10 +499,10 @@ void AddLayer(ECS *ecs, char *name) {
   EcsID alloc = ecs->layer_alloc;
 
   Layer ly = {name, (Signature)-1}; // all enabled
-  EcsPushToArray((void **)&ecs->layers, alloc, count, &ly, sizeof(Layer));
+  MemPushBack((void **)&ecs->layers, alloc, count, &ly, sizeof(Layer));
 
   LayerEntities le = {NULL, 0, 0};
-  alloc = EcsPushToArray((void **)&ecs->render, alloc, count, &le,
+  alloc = MemPushBack((void **)&ecs->render, alloc, count, &le,
                          sizeof(LayerEntities));
 
   ecs->layer_count++;
@@ -559,7 +530,7 @@ void AddEntityToLayer(ECS *ecs, Entity e, uint8_t ly) {
   EcsID count = ecs->render[ly].count;
   EcsID alloc = ecs->render[ly].alloc;
 
-  alloc = EcsPushToArray((void **)&ecs->render[ly].entities, alloc, count, &e,
+  alloc = MemPushBack((void **)&ecs->render[ly].entities, alloc, count, &e,
                          sizeof(Entity));
 
   ecs->render[ly].count++;

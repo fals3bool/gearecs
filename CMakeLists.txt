@@ -71,7 +71,7 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} raylib)
 
 # Examples
-option(GEARECS_BUILD_EXAMPLES "Build falsecs examples" ON)
+option(GEARECS_BUILD_EXAMPLES "Build gearecs examples" ON)
 
 if(GEARECS_BUILD_EXAMPLES)
   file(GLOB EXAMPLE_SOURCES CONFIGURE_DEPENDS examples/*.c)
